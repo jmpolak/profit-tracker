@@ -1,0 +1,24 @@
+version: '1'
+services:
+  mongo:
+    container_name: mongo
+    image: mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./mongo-data:/data/db
+  node-app:
+    volumes:
+      - .:/app
+      - /app/node_modules # Avoid overwriting node_modules
+    container_name: node-app
+    build: .
+    ports:
+      - 8080:3000
+      - 9229:9229 # <-- Node.js debug port
+    depends_on:
+      - mongo
+# volumes: # enable persistence of database data across container restart
+#   mongo-data:
+#     driver: local
+#     name: mongo-data

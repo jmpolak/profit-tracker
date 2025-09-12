@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <title>Wallets</title>
+  </head>
+  <body>
+    <h1>Wallets List</h1>
+
+    {{#each wallets}}
+      <div style='margin-bottom: 1rem;'>
+        <h2>Wallet Address: {{this.address}}</h2>
+
+        {{#if this.tokenSupplied}}
+          <ul>
+            {{#each this.tokenSupplied}}
+              <li>Currency: {{this.currency}}</li>
+              <!-- Button to download file -->
+              <form
+                method='GET'
+                action='/get-file/{{../this.address}}/{{this.currency}}'
+                style='display:inline;'
+              >
+                <button type='submit'>Download File</button>
+              </form>
+            {{/each}}
+          </ul>
+        {{else}}
+          <p>No tokens supplied.</p>
+        {{/if}}
+      </div>
+    {{/each}}
+    <hr />
+    <h1>Add Wallet</h1>
+    <div>
+      <form action='/add-wallet' method='POST'>
+        <label for='address'>Wallet Address:</label>
+        <input type='text' id='address' name='address' required />
+        <button type='submit'>Add Wallet</button>
+      </form>
+    </div>
+  </body>
+</html>
