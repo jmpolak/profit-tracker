@@ -31,11 +31,33 @@
     <hr />
     <h1>Add Wallet</h1>
     <div>
-      <form action='/add-wallet' method='POST'>
+      <form id='add-wallet-form'>
         <label for='address'>Wallet Address:</label>
         <input type='text' id='address' name='address' required />
         <button type='submit'>Add Wallet</button>
       </form>
     </div>
+    <script>
+    document.getElementById('add-wallet-form').addEventListener('submit', async function (e) {
+        e.preventDefault(); // Prevent form default
+
+        const address = document.getElementById('address').value;
+
+        const response = await fetch('/add-wallet', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ address }),
+        });
+
+        if (response.ok) {
+          window.location.reload(); // Reload the same page
+        } else {
+          const data = await response.json().catch(() => ({}));
+          alert(data.message || 'Failed to add wallet');
+        }
+      });
+  </script>
   </body>
 </html>
