@@ -1,31 +1,40 @@
 import { UserTransactionItem } from '@aave/client';
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { IAaveRestClientRepository } from 'src/core/abstract/aave-rest-client/aave-rest-client-repository';
 import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/database-repository';
 import { SuppliedPositions } from 'src/core/entity/transaction';
 import { Wallet } from 'src/frameworks/database/model/wallet.model';
 import { TransactionsFilterUtils } from 'src/utils/transactions-filter-utils';
+import { WalletValidator } from 'src/utils/validators/wallet-validator/wallet-validator';
 
 @Injectable()
 export class WalletUseCase {
   private readonly logger = new Logger(WalletUseCase.name);
   constructor(
     private aaveRestClient: IAaveRestClientRepository,
-    private transactionsFilterUtils: TransactionsFilterUtils,
     private databaseRepository: IDatabaseRepository<Wallet>,
   ) {}
   async createWallet(walletAddress: string) {
-    // validate if wallet exists in aave and already in db
-    await this.databaseRepository.createOrUpdate({
-      address: walletAddress,
-      tokenSupplied: [],
-    });
-    await this.updateWallet(walletAddress);
-    return true;
+    try {
+      await WalletValidator.assertValid(walletAddress, this.databaseRepository);
+      await this.databaseRepository.createOrUpdate({
+        address: walletAddress,
+        tokenSupplied: [],
+      });
+      await this.updateWallet(walletAddress);
+      return true;
+    } catch (err) {
+      throw new InternalServerErrorException(
+        err?.message ?? 'Error in creating wallet',
+      );
+    }
   }
 
   async getWalletsData(): Promise<(Wallet | null)[]> {
-    // const userAddress = '0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf';
     const allWallets = await this.databaseRepository.findAll();
     const results = await Promise.all(
       allWallets.map(async (wallet) => {
@@ -114,22 +123,22 @@ export class WalletUseCase {
       }
       const position = currentSuppliedPositions[key];
       const currentDayTransactionsByToken =
-        this.transactionsFilterUtils.filterTransactionsFromTodayAndByTokenSymbol(
+        TransactionsFilterUtils.filterTransactionsFromTodayAndByTokenSymbol(
           transactions,
           key,
         );
       const currentDayTransactionBalanceByToken =
-        this.transactionsFilterUtils.getTransactionsBalance(
+        TransactionsFilterUtils.getTransactionsBalance(
           currentDayTransactionsByToken,
         );
 
       const currentDayTransactionsBalanceByTokenInUsd =
-        this.transactionsFilterUtils.getTransactionsBalanceInUsd(
+        TransactionsFilterUtils.getTransactionsBalanceInUsd(
           currentDayTransactionsByToken,
         );
 
       const { dailyProfitInPercentage, dailyProfitInUsd } =
-        this.transactionsFilterUtils.getDailyProfit(
+        TransactionsFilterUtils.getDailyProfit(
           position.balanceInUsd ?? 0,
           wallet?.tokenSupplied
             .find((t) => t.currency === key)

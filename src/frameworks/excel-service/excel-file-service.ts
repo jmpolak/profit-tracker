@@ -35,6 +35,11 @@ export class ExcelFileService implements IExcelFileServicePort {
     }));
 
     data.forEach((rowData, index) => {
+      Object.keys(rowData ?? {}).forEach((key) =>
+        rowData[key] instanceof Date
+          ? (rowData[key] = this.formatDateTime(rowData[key]))
+          : rowData[key],
+      );
       const row = worksheet.addRow(rowData);
       if (row.number % 2 === 0) {
         row.eachCell((cell) => {
@@ -63,5 +68,18 @@ export class ExcelFileService implements IExcelFileServicePort {
     await workbook.xlsx.writeFile(path.join(outputDir, fileName));
 
     return wholePath;
+  }
+
+  private formatDateTime(date: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+
+    const day = pad(date.getDate());
+    const month = pad(date.getMonth() + 1); // Months are 0-indexed
+    const year = date.getFullYear();
+
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
   }
 }

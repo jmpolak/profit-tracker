@@ -9,7 +9,6 @@ export class FileUseCase {
   constructor(
     private readonly excelFileService: IExcelFileServicePort,
     private readonly db: IDatabaseRepository<Wallet>,
-    private readonly transactionFiler: TransactionsFilterUtils,
   ) {}
 
   async generateExcelReport(wallet: string, token: string): Promise<string> {
@@ -26,7 +25,9 @@ export class FileUseCase {
     if (!tokenData) {
       throw new Error('Token not found in wallet');
     }
-    const footer = [{ sum: this.transactionFiler.getOverallProfit(tokenData) }];
+    const footer = [
+      { sum: TransactionsFilterUtils.getOverallProfit(tokenData) },
+    ];
     const filePath = await this.excelFileService.generateFile<
       FileData,
       { sum: string }

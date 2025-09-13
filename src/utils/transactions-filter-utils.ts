@@ -3,14 +3,14 @@ import { TransactionType } from 'src/core/entity/transaction';
 import { BigNumber } from 'bignumber.js';
 import { FileData } from 'src/frameworks/database/model/wallet.model';
 export class TransactionsFilterUtils {
-  public getOverallProfit(fileData: FileData[]) {
+  static getOverallProfit(fileData: FileData[]) {
     const sumOfProfit = fileData.reduce((sum, i) => {
       return sum.plus(new BigNumber(i.dailyProfitInUsd));
     }, new BigNumber(0));
     return sumOfProfit.toString();
   }
 
-  public filterTransactionsFromTodayAndByTokenSymbol(
+  static filterTransactionsFromTodayAndByTokenSymbol(
     transactions: UserTransactionItem[],
     tokenSymbol: string,
   ) {
@@ -31,7 +31,7 @@ export class TransactionsFilterUtils {
     });
   }
 
-  public getDailyProfit(
+  static getDailyProfit(
     balanceToday: string,
     balanceYesterday: string,
     netDepositsWithdrawalsInUsd: string,
@@ -54,8 +54,9 @@ export class TransactionsFilterUtils {
     };
   }
 
-  public getTransactionsBalance(transactions: UserTransactionItem[]) {
-    const transactionsByType = this.groupByTransactionsType(transactions);
+  static getTransactionsBalance(transactions: UserTransactionItem[]) {
+    const transactionsByType =
+      TransactionsFilterUtils.groupByTransactionsType(transactions);
     const totalDeposits = transactionsByType[TransactionType.SUPPLY]
       ? transactionsByType[TransactionType.SUPPLY].reduce(
           (sum, tx) => sum.plus(BigNumber(tx['amount'].amount.value)),
@@ -71,8 +72,9 @@ export class TransactionsFilterUtils {
     return totalDeposits.minus(totalWithdrawals).toString();
   }
 
-  public getTransactionsBalanceInUsd(transactions: UserTransactionItem[]) {
-    const transactionsByType = this.groupByTransactionsType(transactions);
+  static getTransactionsBalanceInUsd(transactions: UserTransactionItem[]) {
+    const transactionsByType =
+      TransactionsFilterUtils.groupByTransactionsType(transactions);
     const totalDeposits = transactionsByType[TransactionType.SUPPLY]
       ? transactionsByType[TransactionType.SUPPLY].reduce(
           (sum, tx) => sum.plus(BigNumber(tx['amount'].usd)),
@@ -88,7 +90,7 @@ export class TransactionsFilterUtils {
     return totalDeposits.minus(totalWithdrawals).toString();
   }
 
-  private groupByTransactionsType(transactions: UserTransactionItem[]) {
+  private static groupByTransactionsType(transactions: UserTransactionItem[]) {
     return transactions.reduce(
       (acc, tx) => {
         const type = tx.__typename;
