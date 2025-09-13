@@ -1,63 +1,199 @@
-<html>
-  <head>
-    <title>Wallets</title>
-  </head>
-  <body>
-    <h1>Wallets List</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wallets</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
 
-    {{#each wallets}}
-      <div style='margin-bottom: 1rem;'>
-        <h2>Wallet Address: {{this.address}}</h2>
+    h1 {
+      color: #222;
+      margin-bottom: 1rem;
+    }
 
-        {{#if this.tokenSupplied}}
-          <ul>
-            {{#each this.tokenSupplied}}
-              <li>Currency: {{this.currency}}</li>
-              <!-- Button to download file -->
-              <form
-                method='GET'
-                action='/get-file/{{../this.address}}/{{this.currency}}'
-                style='display:inline;'
-              >
-                <button type='submit'>Download File</button>
+    .wallet {
+      background-color: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 1.5rem;
+    }
+
+    .wallet h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: #555;
+    }
+
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    form {
+      display: inline;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .no-tokens {
+      font-style: italic;
+      color: #777;
+    }
+
+    hr {
+      margin: 3rem 0;
+      border: none;
+      border-top: 1px solid #ddd;
+    }
+
+    .add-wallet-container {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  max-width: 500px;
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+}
+
+.add-wallet-container h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.add-wallet-container button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.add-wallet-container button:hover {
+  background-color: #166619;
+}
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <h1>Wallets List</h1>
+
+  {{#each wallets}}
+    <div class="wallet">
+      <h2>Wallet Address: {{this.address}}</h2>
+
+      {{#if this.tokenSupplied}}
+        <ul>
+          {{#each this.tokenSupplied}}
+            <li>
+              <strong>Currency:</strong> {{this.currency}}
+              <form method="GET" action="/get-file/{{../this.address}}/{{this.currency}}">
+                <button type="submit">Download File</button>
               </form>
-            {{/each}}
-          </ul>
-        {{else}}
-          <p>No tokens supplied.</p>
-        {{/if}}
-      </div>
-    {{/each}}
-    <hr />
-    <h1>Add Wallet</h1>
-    <div>
-      <form id='add-wallet-form'>
-        <label for='address'>Wallet Address:</label>
-        <input type='text' id='address' name='address' required />
-        <button type='submit'>Add Wallet</button>
-      </form>
+            </li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p class="no-tokens">No tokens supplied.</p>
+      {{/if}}
     </div>
-    <script>
+  {{/each}}
+
+  <hr />
+
+<div class="add-wallet-container">
+  <h2>Add a New Wallet</h2>
+  <form id="add-wallet-form">
+    <div class="form-group">
+      <label for="address">Wallet Address</label>
+      <input type="text" id="address" name="address" placeholder="e.g. 0xABC123..." required />
+    </div>
+    <button type="submit">➕ Add Wallet</button>
+  </form>
+</div>
+
+  <script>
     document.getElementById('add-wallet-form').addEventListener('submit', async function (e) {
-        e.preventDefault(); // Prevent form default
+      e.preventDefault();
 
-        const address = document.getElementById('address').value;
+      const address = document.getElementById('address').value;
 
-        const response = await fetch('/add-wallet', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ address }),
-        });
-
-        if (response.ok) {
-          window.location.reload(); // Reload the same page
-        } else {
-          const data = await response.json().catch(() => ({}));
-          alert(data.message || 'Failed to add wallet');
-        }
+      const response = await fetch('/add-wallet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ address }),
       });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        alert(data.message || 'Failed to add wallet');
+      }
+    });
   </script>
-  </body>
+</body>
 </html>
