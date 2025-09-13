@@ -3,6 +3,7 @@ import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/databa
 import { IExcelFileServicePort } from 'src/core/abstract/excel-file-service/excel-file-service-port';
 import { FileData, Wallet } from 'src/frameworks/database/model/wallet.model';
 import { TransactionsAnalyticUtils } from 'src/application/services/transactions/transactions-analytics-utils';
+import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 
 @Injectable()
 export class FileUseCase {
@@ -12,19 +13,12 @@ export class FileUseCase {
   ) {}
 
   async generateExcelReport(wallet: string, token: string): Promise<string> {
+    await WalletValidator.walletValidForFileGeneration(wallet, this.db);
     const dbWallet = await this.db.findByAddress(wallet);
-    if (!dbWallet) {
-      throw new Error('Wallet not found');
-    }
-    if (!dbWallet.tokenSupplied) {
-      throw new Error('No token supplied data found for this wallet');
-    }
-    const tokenData = dbWallet.tokenSupplied.find(
-      (t) => t.currency === token,
-    )?.fileData;
-    if (!tokenData) {
-      throw new Error('Token not found in wallet');
-    }
+
+    const tokenData =
+      dbWallet?.tokenSupplied.find((t) => t.currency === token)?.fileData ?? [];
+
     const footer = [
       { sum: TransactionsAnalyticUtils.getOverallProfit(tokenData) },
     ];

@@ -2,18 +2,6 @@ import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/databa
 import { Wallet } from 'src/frameworks/database/model/wallet.model';
 
 export class WalletValidator {
-  static isValid(address: string): boolean {
-    return /^0x[a-fA-F0-9]{40}$/.test(address);
-  }
-
-  static async isInDatabase(
-    address: string,
-    databaseRepository: IDatabaseRepository<Wallet>,
-  ) {
-    const wallet = await databaseRepository.findByAddress(address);
-    return wallet ? true : false;
-  }
-
   static async assertValid(
     address: string,
     databaseRepository: IDatabaseRepository<Wallet>,
@@ -24,5 +12,37 @@ export class WalletValidator {
     if (await this.isInDatabase(address, databaseRepository)) {
       throw new Error(`Wallet ${address} already exists`);
     }
+  }
+
+  static async walletValidForFileGeneration(
+    address: string,
+    databaseRepository: IDatabaseRepository<Wallet>,
+  ) {
+    const wallet = await WalletValidator.isInDatabase(
+      address,
+      databaseRepository,
+    );
+    if (!wallet) {
+      throw new Error(`Wallet ${address} do not exists`);
+    }
+    if (!WalletValidator.hasTokenSupplied(wallet)) {
+      throw new Error(`Wallet ${wallet.address} do not have token supplied`);
+    }
+  }
+
+  private static isValid(address: string): boolean {
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
+  }
+
+  private static hasTokenSupplied(wallet: Wallet) {
+    return wallet?.tokenSupplied.length ?? 0 > 0;
+  }
+
+  private static async isInDatabase(
+    address: string,
+    databaseRepository: IDatabaseRepository<Wallet>,
+  ) {
+    const wallet = await databaseRepository.findByAddress(address);
+    return wallet;
   }
 }
