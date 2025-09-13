@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/database-repository';
 import { IExcelFileServicePort } from 'src/core/abstract/excel-file-service/excel-file-service-port';
 import { FileData, Wallet } from 'src/frameworks/database/model/wallet.model';
-import { TransactionsFilterUtils } from 'src/utils/transactions-filter-utils';
+import { TransactionsAnalyticUtils } from 'src/application/services/transactions/transactions-analytics-utils';
 
 @Injectable()
 export class FileUseCase {
@@ -26,7 +26,7 @@ export class FileUseCase {
       throw new Error('Token not found in wallet');
     }
     const footer = [
-      { sum: TransactionsFilterUtils.getOverallProfit(tokenData) },
+      { sum: TransactionsAnalyticUtils.getOverallProfit(tokenData) },
     ];
     const filePath = await this.excelFileService.generateFile<
       FileData,

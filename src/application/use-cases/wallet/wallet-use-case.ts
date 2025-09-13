@@ -8,8 +8,8 @@ import { IAaveRestClientRepository } from 'src/core/abstract/aave-rest-client/aa
 import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/database-repository';
 import { SuppliedPositions } from 'src/core/entity/transaction';
 import { Wallet } from 'src/frameworks/database/model/wallet.model';
-import { TransactionsFilterUtils } from 'src/utils/transactions-filter-utils';
-import { WalletValidator } from 'src/utils/validators/wallet-validator/wallet-validator';
+import { TransactionsAnalyticUtils } from 'src/application/services/transactions/transactions-analytics-utils';
+import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 
 @Injectable()
 export class WalletUseCase {
@@ -123,22 +123,22 @@ export class WalletUseCase {
       }
       const position = currentSuppliedPositions[key];
       const currentDayTransactionsByToken =
-        TransactionsFilterUtils.filterTransactionsFromTodayAndByTokenSymbol(
+        TransactionsAnalyticUtils.filterTransactionsFromTodayAndByTokenSymbol(
           transactions,
           key,
         );
       const currentDayTransactionBalanceByToken =
-        TransactionsFilterUtils.getTransactionsBalance(
+        TransactionsAnalyticUtils.getTransactionsBalance(
           currentDayTransactionsByToken,
         );
 
       const currentDayTransactionsBalanceByTokenInUsd =
-        TransactionsFilterUtils.getTransactionsBalanceInUsd(
+        TransactionsAnalyticUtils.getTransactionsBalanceInUsd(
           currentDayTransactionsByToken,
         );
 
       const { dailyProfitInPercentage, dailyProfitInUsd } =
-        TransactionsFilterUtils.getDailyProfit(
+        TransactionsAnalyticUtils.getDailyProfit(
           position.balanceInUsd ?? 0,
           wallet?.tokenSupplied
             .find((t) => t.currency === key)

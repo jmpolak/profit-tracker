@@ -7,9 +7,9 @@ import {
   Render,
   Res,
 } from '@nestjs/common';
-import { FileUseCase } from 'src/use-cases/file/file-use-case';
+import { FileUseCase } from 'src/application/use-cases/file/file-use-case';
 import { Response } from 'express';
-import { WalletUseCase } from 'src/use-cases/wallet/wallet-use-case';
+import { WalletUseCase } from 'src/application/use-cases/wallet/wallet-use-case';
 import { WalletDto } from 'src/core/dto/wallet.dto';
 
 @Controller()

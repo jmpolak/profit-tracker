@@ -2,7 +2,7 @@ import { UserTransactionItem } from '@aave/client';
 import { TransactionType } from 'src/core/entity/transaction';
 import { BigNumber } from 'bignumber.js';
 import { FileData } from 'src/frameworks/database/model/wallet.model';
-export class TransactionsFilterUtils {
+export class TransactionsAnalyticUtils {
   static getOverallProfit(fileData: FileData[]) {
     const sumOfProfit = fileData.reduce((sum, i) => {
       return sum.plus(new BigNumber(i.dailyProfitInUsd));
@@ -56,7 +56,7 @@ export class TransactionsFilterUtils {
 
   static getTransactionsBalance(transactions: UserTransactionItem[]) {
     const transactionsByType =
-      TransactionsFilterUtils.groupByTransactionsType(transactions);
+      TransactionsAnalyticUtils.groupByTransactionsType(transactions);
     const totalDeposits = transactionsByType[TransactionType.SUPPLY]
       ? transactionsByType[TransactionType.SUPPLY].reduce(
           (sum, tx) => sum.plus(BigNumber(tx['amount'].amount.value)),
@@ -74,7 +74,7 @@ export class TransactionsFilterUtils {
 
   static getTransactionsBalanceInUsd(transactions: UserTransactionItem[]) {
     const transactionsByType =
-      TransactionsFilterUtils.groupByTransactionsType(transactions);
+      TransactionsAnalyticUtils.groupByTransactionsType(transactions);
     const totalDeposits = transactionsByType[TransactionType.SUPPLY]
       ? transactionsByType[TransactionType.SUPPLY].reduce(
           (sum, tx) => sum.plus(BigNumber(tx['amount'].usd)),

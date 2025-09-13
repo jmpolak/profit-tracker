@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { WalletUseCase } from 'src/use-cases/wallet/wallet-use-case';
+import { WalletUseCase } from 'src/application/use-cases/wallet/wallet-use-case';
 
 @Injectable()
 export class DailyUpdateWalletCronJob {
