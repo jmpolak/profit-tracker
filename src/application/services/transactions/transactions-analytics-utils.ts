@@ -5,7 +5,7 @@ import { FileData } from 'src/frameworks/database/model/wallet.model';
 export class TransactionsAnalyticUtils {
   static getOverallProfit(fileData: FileData[]) {
     const sumOfProfit = fileData.reduce((sum, i) => {
-      return sum.plus(new BigNumber(i.dailyProfitInUsd));
+      return sum.plus(new BigNumber(i.dailyProfit));
     }, new BigNumber(0));
     return sumOfProfit.toString();
   }
@@ -34,22 +34,22 @@ export class TransactionsAnalyticUtils {
   static getDailyProfit(
     balanceToday: string,
     balanceYesterday: string,
-    netDepositsWithdrawalsInUsd: string,
+    netDepositsWithdrawals: string,
   ) {
     const balanceTodayBN = new BigNumber(balanceToday);
     const balanceYesterdayBN = new BigNumber(balanceYesterday);
-    const netDepositsWithdrawalsBN = new BigNumber(netDepositsWithdrawalsInUsd);
-    const dailyProfitInUsd = balanceYesterdayBN.isZero()
+    const netDepositsWithdrawalsBN = new BigNumber(netDepositsWithdrawals);
+    const dailyProfit = balanceYesterdayBN.isZero()
       ? new BigNumber(0)
       : balanceTodayBN
           .minus(balanceYesterdayBN)
           .minus(netDepositsWithdrawalsBN);
     const dailyProfitInPercentage = balanceYesterdayBN.isZero()
       ? new BigNumber(0)
-      : dailyProfitInUsd.dividedBy(balanceYesterdayBN).multipliedBy(100);
+      : dailyProfit.dividedBy(balanceYesterdayBN).multipliedBy(100);
 
     return {
-      dailyProfitInUsd: dailyProfitInUsd.toString(),
+      dailyProfit: dailyProfit.toString(),
       dailyProfitInPercentage: dailyProfitInPercentage.toString() + '%',
     };
   }

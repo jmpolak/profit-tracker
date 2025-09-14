@@ -16,10 +16,7 @@ export class FileData {
   balance: string;
 
   @Prop({ required: true })
-  balanceInUsd: string;
-
-  @Prop({ required: true })
-  dailyProfitInUsd: string;
+  dailyProfit: string;
 
   @Prop({ required: true })
   dailyProfitInPercentage: string;

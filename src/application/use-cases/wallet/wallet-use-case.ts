@@ -7,7 +7,7 @@ import {
 import { IAaveRestClientRepository } from 'src/core/abstract/aave-rest-client/aave-rest-client-repository';
 import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/database-repository';
 import { SuppliedPositions } from 'src/core/entity/transaction';
-import { Wallet } from 'src/frameworks/database/model/wallet.model';
+import { FileData, Wallet } from 'src/frameworks/database/model/wallet.model';
 import { TransactionsAnalyticUtils } from 'src/application/services/transactions/transactions-analytics-utils';
 import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 
@@ -137,9 +137,9 @@ export class WalletUseCase {
           currentDayTransactionsByToken,
         );
 
-      const { dailyProfitInPercentage, dailyProfitInUsd } =
+      const { dailyProfitInPercentage, dailyProfit } =
         TransactionsAnalyticUtils.getDailyProfit(
-          position.balanceInUsd ?? 0,
+          position.balance ?? 0,
           wallet?.tokenSupplied
             .find((t) => t.currency === key)
             ?.fileData.find(
@@ -149,9 +149,9 @@ export class WalletUseCase {
                 new Date(
                   new Date().setDate(new Date().getDate() - 1),
                 ).getDate(),
-            )?.balanceInUsd ?? '0',
+            )?.balance ?? '0',
 
-          currentDayTransactionsBalanceByTokenInUsd,
+          currentDayTransactionBalanceByToken,
         );
       const dateForInsert = new Date();
       // const dateForInsert = new Date(
@@ -163,14 +163,13 @@ export class WalletUseCase {
         );
         if (tokenSuppliedIndex > -1) {
           // update
-          const fileDataEntry = {
+          const fileDataEntry: FileData = {
             transactions: currentDayTransactionsByToken.map((tx) => tx.txHash),
             transactionBalance: currentDayTransactionBalanceByToken.toString(),
             transactionBalanceInUsd:
               currentDayTransactionsBalanceByTokenInUsd.toString(),
             balance: position.balance,
-            balanceInUsd: position.balanceInUsd,
-            dailyProfitInUsd,
+            dailyProfit,
             dailyProfitInPercentage,
             date: dateForInsert,
           };
@@ -184,14 +183,13 @@ export class WalletUseCase {
           );
         } else {
           // push
-          const fileDataEntry = {
+          const fileDataEntry: FileData = {
             transactions: currentDayTransactionsByToken.map((tx) => tx.txHash),
             transactionBalance: currentDayTransactionBalanceByToken.toString(),
             transactionBalanceInUsd:
               currentDayTransactionsBalanceByTokenInUsd.toString(),
             balance: position.balance,
-            balanceInUsd: position.balanceInUsd,
-            dailyProfitInUsd,
+            dailyProfit,
             dailyProfitInPercentage,
             date: dateForInsert,
           };
@@ -206,14 +204,13 @@ export class WalletUseCase {
         await this.databaseRepository.createOrUpdate(wallet);
       } else {
         // create new wallet
-        const fileDataEntry = {
+        const fileDataEntry: FileData = {
           transactions: currentDayTransactionsByToken.map((tx) => tx.txHash),
           transactionBalance: currentDayTransactionBalanceByToken.toString(),
           transactionBalanceInUsd:
             currentDayTransactionsBalanceByTokenInUsd.toString(),
           balance: position.balance,
-          balanceInUsd: position.balanceInUsd,
-          dailyProfitInUsd,
+          dailyProfit,
           dailyProfitInPercentage,
           date: dateForInsert,
         };

@@ -31,8 +31,6 @@ export class BasicController {
     return await this.walletUseCase.createWallet(walletDto.address);
   }
 
-  // get index. html with all wallets and tokens
-  // add wallet
   // remove wallet?
 
   @Get('get-file/:walletaddress/:token')
