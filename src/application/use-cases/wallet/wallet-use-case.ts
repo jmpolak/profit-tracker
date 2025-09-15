@@ -25,7 +25,7 @@ export class WalletUseCase {
         address: walletAddress,
         tokenSupplied: [],
       });
-      await this.updateWallet(walletAddress);
+      await this.updateWallet(walletAddress, true);
       return true;
     } catch (err) {
       throw new InternalServerErrorException(
@@ -58,7 +58,7 @@ export class WalletUseCase {
     );
   }
 
-  public async updateWallet(userAddress: string) {
+  public async updateWallet(userAddress: string, onWalletCreation?: boolean) {
     const currentSuppliedPositions =
       await this.aaveRestClient.getCurrentBalance(userAddress);
     const walletWithRecentUpdatedTokenSupplies =
@@ -85,6 +85,7 @@ export class WalletUseCase {
       userAddress,
       currentSuppliedPositions,
       transactions,
+      onWalletCreation,
     );
   }
 
@@ -93,6 +94,7 @@ export class WalletUseCase {
     userAddress: string,
     currentSuppliedPositions: SuppliedPositions,
     transactions: UserTransactionItem[],
+    onWalletCreation?: boolean,
   ) {
     for (const key of Object.keys(currentSuppliedPositions)) {
       // make it as one call to db
@@ -112,12 +114,17 @@ export class WalletUseCase {
           (t) => t.currency === key,
         );
         if (tokenSupplied) {
-          const wasToday = checkIfLastUpdateWasToday(tokenSupplied.lastUpdate);
-          if (wasToday) {
-            this.logger.warn(
-              `Wallet entry for address ${userAddress} and token ${key} was already updated today. Skipping update to avoid duplicates.`,
+          const lastFileData = tokenSupplied.fileData.at(-1);
+          if (lastFileData && !lastFileData.createdByCreateWalletEvent) {
+            const wasToday = checkIfLastUpdateWasToday(
+              tokenSupplied.lastUpdate,
             );
-            continue; // Skip to the next token if already updated today
+            if (wasToday) {
+              this.logger.warn(
+                `Wallet entry for address ${userAddress} and token ${key} was already updated today. Skipping update to avoid duplicates.`,
+              );
+              continue; // Skip to the next token if already updated today
+            }
           }
         }
       }
@@ -172,6 +179,9 @@ export class WalletUseCase {
             dailyProfit,
             dailyProfitInPercentage,
             date: dateForInsert,
+            ...(onWalletCreation
+              ? { createdByCreateWalletEvent: true }
+              : undefined),
           };
           wallet.tokenSupplied[tokenSuppliedIndex].currentBalance =
             position.balance;
@@ -192,6 +202,9 @@ export class WalletUseCase {
             dailyProfit,
             dailyProfitInPercentage,
             date: dateForInsert,
+            ...(onWalletCreation
+              ? { createdByCreateWalletEvent: true }
+              : undefined),
           };
           wallet.tokenSupplied.push({
             currency: key,
@@ -213,6 +226,9 @@ export class WalletUseCase {
           dailyProfit,
           dailyProfitInPercentage,
           date: dateForInsert,
+          ...(onWalletCreation
+            ? { createdByCreateWalletEvent: true }
+            : undefined),
         };
         const newWallet: Wallet = {
           address: userAddress,

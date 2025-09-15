@@ -21,6 +21,9 @@ export class FileData {
   @Prop({ required: true })
   dailyProfitInPercentage: string;
 
+  @Prop({ required: false })
+  createdByCreateWalletEvent?: boolean;
+
   @Prop({ required: true })
   date: Date;
 }
