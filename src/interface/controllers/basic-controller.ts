@@ -11,6 +11,7 @@ import { FileUseCase } from 'src/application/use-cases/file/file-use-case';
 import { Response } from 'express';
 import { WalletUseCase } from 'src/application/use-cases/wallet/wallet-use-case';
 import { WalletDto } from 'src/core/dto/wallet.dto';
+import { UppercasePipe } from '../pipes/uppercase-pipe';
 
 @Controller()
 export class BasicController {
@@ -36,12 +37,12 @@ export class BasicController {
   @Get('get-file/:walletaddress/:token')
   async getDailyProfitCsv(
     @Param('walletaddress') walletAddress: string,
-    @Param('token') token: string,
+    @Param('token', UppercasePipe) token: string,
     @Res() res: Response,
   ) {
     const filePath = await this.fileUseCase.generateExcelReport(
       walletAddress,
-      token.toUpperCase(),
+      token,
     );
     return res.download(filePath);
   }
