@@ -14,16 +14,18 @@ export class FileUseCase {
 
   async generateExcelReport(wallet: string, token: string): Promise<string> {
     await WalletValidator.walletValidForFileGeneration(wallet, this.db);
+    type ExcelData = Omit<FileData, 'createdByCreateWalletEvent'>;
     const dbWallet = await this.db.findByAddress(wallet);
-
-    const tokenData =
-      dbWallet?.tokenSupplied.find((t) => t.currency === token)?.fileData ?? [];
+    const tokenData: ExcelData[] =
+      dbWallet?.tokenSupplied
+        .find((t) => t.currency === token)
+        ?.fileData.map(({ createdByCreateWalletEvent, ...rest }) => rest) ?? [];
 
     const footer = [
       { sum: TransactionsAnalyticUtils.getOverallProfit(tokenData) },
     ];
     const filePath = await this.excelFileService.generateFile<
-      FileData,
+      ExcelData,
       { sum: string }
     >(
       tokenData,
