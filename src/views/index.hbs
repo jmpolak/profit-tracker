@@ -188,6 +188,7 @@
       });
 
       if (response.ok) {
+        alert('Wallet added');
         window.location.reload();
       } else {
         const data = await response.json().catch(() => ({}));
