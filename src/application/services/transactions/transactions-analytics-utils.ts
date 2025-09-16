@@ -33,20 +33,18 @@ export class TransactionsAnalyticUtils {
 
   static getDailyProfit(
     balanceToday: string,
-    balanceYesterday: string,
+    lastBalance: string,
     netDepositsWithdrawals: string,
   ) {
     const balanceTodayBN = new BigNumber(balanceToday);
-    const balanceYesterdayBN = new BigNumber(balanceYesterday);
+    const lastBalanceBN = new BigNumber(lastBalance);
     const netDepositsWithdrawalsBN = new BigNumber(netDepositsWithdrawals);
-    const dailyProfit = balanceYesterdayBN.isZero()
+    const dailyProfit = lastBalanceBN.isZero()
       ? new BigNumber(0)
-      : balanceTodayBN
-          .minus(balanceYesterdayBN)
-          .minus(netDepositsWithdrawalsBN);
-    const dailyProfitInPercentage = balanceYesterdayBN.isZero()
+      : balanceTodayBN.minus(lastBalanceBN).minus(netDepositsWithdrawalsBN);
+    const dailyProfitInPercentage = lastBalanceBN.isZero()
       ? new BigNumber(0)
-      : dailyProfit.dividedBy(balanceYesterdayBN).multipliedBy(100);
+      : dailyProfit.dividedBy(lastBalanceBN).multipliedBy(100);
 
     return {
       dailyProfit: dailyProfit.toString(),

@@ -182,15 +182,8 @@ export class WalletUseCase {
             position.balance ?? 0,
             wallet?.tokenSupplied
               .find((t) => t.currency === key)
-              ?.fileData.find(
-                (c) =>
-                  // get entry from yesterday
-                  new Date(c.date).getDate() ===
-                  new Date(
-                    new Date().setDate(new Date().getDate() - 1),
-                  ).getDate(),
-              )?.balance ?? '0',
-
+              ?.fileData.at(0)?.balance ?? '0',
+            // get last inserted fileData - its getting inserted on start of array
             currentDayTransactionBalanceByToken,
           );
         const dateForInsert = new Date();
