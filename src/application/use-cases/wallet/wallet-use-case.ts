@@ -18,6 +18,10 @@ export class WalletUseCase {
     private aaveRestClient: IAaveRestClientRepository,
     private databaseRepository: IDatabaseRepository<Wallet>,
   ) {}
+  async removeWallet(walletAddress: string) {
+    return await this.databaseRepository.delete(walletAddress);
+  }
+
   async createWallet(walletAddress: string) {
     await WalletValidator.assertValid(walletAddress, this.databaseRepository);
     try {

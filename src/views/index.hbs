@@ -141,8 +141,12 @@
 
   {{#each wallets}}
     <div class="wallet">
-      <h2>Wallet Address: {{this.address}}</h2>
-
+        <div class="wallet-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <h2>Wallet Address: {{this.address}}</h2>
+    <button class="remove-wallet-btn" data-address="{{this.address}}" style="background-color:#e74c3c;">
+      Remove
+    </button>
+  </div>
       {{#if this.tokenSupplied}}
         <ul>
           {{#each this.tokenSupplied}}
@@ -195,6 +199,32 @@
         alert(data.message || 'Failed to add wallet');
       }
     });
+    document.querySelectorAll('.remove-wallet-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const walletAddress = e.target.getAttribute('data-address');
+    if (!walletAddress) return;
+
+    if (!confirm(`Are you sure you want to remove wallet ${walletAddress}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/remove-wallet/${walletAddress}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert(`Wallet ${walletAddress} removed`);
+        window.location.reload();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        alert(data.message || 'Failed to remove wallet');
+      }
+    } catch (error) {
+      alert('Network error while trying to remove wallet');
+    }
+  });
+});
   </script>
 </body>
 </html>

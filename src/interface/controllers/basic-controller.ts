@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -33,6 +34,11 @@ export class BasicController {
   }
 
   // remove wallet?
+
+  @Delete('remove-wallet/:walletaddress')
+  async removeFile(@Param('walletaddress') walletAddress: string) {
+    return await this.walletUseCase.removeWallet(walletAddress);
+  }
 
   @Get('get-file/:walletaddress/:token')
   async getDailyProfitCsv(
