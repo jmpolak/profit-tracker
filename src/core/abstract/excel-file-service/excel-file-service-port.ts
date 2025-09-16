@@ -1,8 +1,3 @@
 export abstract class IExcelFileServicePort {
-  abstract generateFile<T, S>(
-    data: T[],
-    filePath: string,
-    fileName: string,
-    footer?: S[],
-  ): Promise<string>;
+  abstract generateFile<T, S>(data: T[], footer?: S[]): Promise<Buffer>;
 }

@@ -40,10 +40,16 @@ export class BasicController {
     @Param('token', UppercasePipe) token: string,
     @Res() res: Response,
   ) {
-    const filePath = await this.fileUseCase.generateExcelReport(
+    const { bufferFile, fileName } = await this.fileUseCase.generateExcelReport(
       walletAddress,
       token,
     );
-    return res.download(filePath);
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="${fileName}"`,
+      'Content-Length': bufferFile.length,
+    });
+    return res.send(bufferFile);
   }
 }

@@ -7,21 +7,11 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ExcelFileService implements IExcelFileServicePort {
-  async generateFile<T, S>(
-    data: T[],
-    filePath: string,
-    fileName: string,
-    footer?: S[],
-  ): Promise<string> {
+  async generateFile<T, S>(data: T[], footer?: S[]): Promise<Buffer> {
     if (data.length === 0) {
       throw new Error('No data provided to generate the Excel file.');
     }
-    // Implementation for generating Excel file
-    const wholePath = path.join(filePath, fileName);
-    if (fs.existsSync(wholePath)) {
-      console.log(`File ${wholePath} already exists`);
-      return wholePath;
-    }
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Report');
     const keys = Object.keys(data.at(0) ?? {});
@@ -59,15 +49,10 @@ export class ExcelFileService implements IExcelFileServicePort {
         worksheet.addRow(rowData);
       });
     }
-    // Ensure directory exists
-    const outputDir = path.join(process.cwd(), filePath);
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
 
-    await workbook.xlsx.writeFile(path.join(outputDir, fileName));
+    await workbook.xlsx.writeBuffer();
 
-    return wholePath;
+    return Buffer.from(await workbook.xlsx.writeBuffer());
   }
 
   private formatDateTime(date: Date): string {

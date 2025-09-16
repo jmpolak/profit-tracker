@@ -12,7 +12,10 @@ export class FileUseCase {
     private readonly db: IDatabaseRepository<Wallet>,
   ) {}
 
-  async generateExcelReport(wallet: string, token: string): Promise<string> {
+  async generateExcelReport(
+    wallet: string,
+    token: string,
+  ): Promise<{ bufferFile: Buffer; fileName: string }> {
     await WalletValidator.walletValidForFileGeneration(wallet, this.db);
     type ExcelData = Omit<FileData, 'createdByCreateWalletEvent'>;
     const dbWallet = await this.db.findByAddress(wallet);
@@ -24,16 +27,13 @@ export class FileUseCase {
     const footer = [
       { sum: TransactionsAnalyticUtils.getOverallProfit(tokenData) },
     ];
-    const filePath = await this.excelFileService.generateFile<
-      ExcelData,
-      { sum: string }
-    >(
-      tokenData,
-      `files/${wallet}/${token}`,
-      `${wallet}-${token}-${this.getTodayDate()}.xlsx`,
-      footer,
-    );
-    return filePath;
+    return {
+      bufferFile: await this.excelFileService.generateFile<
+        ExcelData,
+        { sum: string }
+      >(tokenData, footer),
+      fileName: `${wallet}-${token}-${this.getTodayDate()}.xlsx`,
+    };
   }
 
   private getTodayDate(): string {

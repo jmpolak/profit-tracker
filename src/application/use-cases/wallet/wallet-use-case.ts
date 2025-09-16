@@ -1,4 +1,4 @@
-import { UserTransactionItem } from '@aave/client';
+import { Err, UserTransactionItem } from '@aave/client';
 import {
   Injectable,
   InternalServerErrorException,
@@ -19,8 +19,8 @@ export class WalletUseCase {
     private databaseRepository: IDatabaseRepository<Wallet>,
   ) {}
   async createWallet(walletAddress: string) {
+    await WalletValidator.assertValid(walletAddress, this.databaseRepository);
     try {
-      await WalletValidator.assertValid(walletAddress, this.databaseRepository);
       await this.databaseRepository.createOrUpdate({
         address: walletAddress,
         tokenSupplied: [],
@@ -28,65 +28,93 @@ export class WalletUseCase {
       await this.updateWallet(walletAddress, true);
       return true;
     } catch (err) {
+      this.logger.error(
+        err?.message ?? `Error in creating wallet for ${walletAddress}`,
+      );
       throw new InternalServerErrorException(
-        err?.message ?? 'Error in creating wallet',
+        err?.message ?? `Error in creating wallet for ${walletAddress}`,
       );
     }
   }
 
   async getWalletsData(): Promise<(Wallet | null)[]> {
-    const allWallets = await this.databaseRepository.findAll();
-    const results = await Promise.all(
-      allWallets.map(async (wallet) => {
-        return this.getWalletData(wallet.address);
-      }),
-    );
-    return results;
-  }
-
-  async getWalletData(userAddress: string): Promise<Wallet | null> {
-    const wallet = await this.databaseRepository.findByAddress(userAddress);
-    return wallet;
-  }
-
-  public async updateWallets() {
-    const allWallets = await this.databaseRepository.findAll();
-    await Promise.all(
-      allWallets.map(async (wallet) => {
-        return this.updateWallet(wallet.address);
-      }),
-    );
-  }
-
-  public async updateWallet(userAddress: string, onWalletCreation?: boolean) {
-    const currentSuppliedPositions =
-      await this.aaveRestClient.getCurrentBalance(userAddress);
-    const walletWithRecentUpdatedTokenSupplies =
-      await this.databaseRepository.getAllRecentUpdatedTokenSuppliedByWalletAddress(
-        userAddress,
+    try {
+      const allWallets = await this.databaseRepository.findAll();
+      const results = await Promise.all(
+        allWallets.map(async (wallet) => {
+          return this.getWalletData(wallet.address);
+        }),
       );
-    // if user withdraw all his funds, currentSuppliedPositions will be empty but we want to keep the last known balance in db
-    if (
-      walletWithRecentUpdatedTokenSupplies?.tokenSupplied &&
-      walletWithRecentUpdatedTokenSupplies.tokenSupplied?.length > 0
-    ) {
-      walletWithRecentUpdatedTokenSupplies.tokenSupplied.forEach((token) => {
-        if (!currentSuppliedPositions[token.currency]) {
-          currentSuppliedPositions[token.currency] = {
-            balance: token?.currentBalance,
-            balanceInUsd: token?.currentBalanceInUsd,
-          };
-        }
-      });
+      return results;
+    } catch (err) {
+      this.logger.error(err?.message ?? `Error getting all wallets`);
+      throw new InternalServerErrorException(
+        err?.message ?? `Error getting all wallets`,
+      );
     }
-    const transactions = await this.aaveRestClient.getTransactions(userAddress);
+  }
 
-    await this.handleWalletEntry(
-      userAddress,
-      currentSuppliedPositions,
-      transactions,
-      onWalletCreation,
-    );
+  async updateWallets() {
+    try {
+      const allWallets = await this.databaseRepository.findAll();
+      await Promise.all(
+        allWallets.map(async (wallet) => {
+          return this.updateWallet(wallet.address);
+        }),
+      );
+    } catch (err) {
+      this.logger.error(err?.message ?? `Error updating all wallets`);
+      throw new Error(err?.message ?? `Error updating all wallets`);
+    }
+  }
+
+  private async getWalletData(userAddress: string): Promise<Wallet | null> {
+    try {
+      const wallet = await this.databaseRepository.findByAddress(userAddress);
+      return wallet;
+    } catch (err) {
+      this.logger.error(err?.message ?? `Error getting wallet: ${userAddress}`);
+      throw new Error(err?.message ?? `Error getting wallet: ${userAddress}`);
+    }
+  }
+
+  private async updateWallet(userAddress: string, onWalletCreation?: boolean) {
+    try {
+      const currentSuppliedPositions =
+        await this.aaveRestClient.getCurrentBalance(userAddress);
+      const walletWithRecentUpdatedTokenSupplies =
+        await this.databaseRepository.getAllRecentUpdatedTokenSuppliedByWalletAddress(
+          userAddress,
+        );
+      // if user withdraw all his funds, currentSuppliedPositions will be empty but we want to keep the last known balance in db
+      if (
+        walletWithRecentUpdatedTokenSupplies?.tokenSupplied &&
+        walletWithRecentUpdatedTokenSupplies.tokenSupplied?.length > 0
+      ) {
+        walletWithRecentUpdatedTokenSupplies.tokenSupplied.forEach((token) => {
+          if (!currentSuppliedPositions[token.currency]) {
+            currentSuppliedPositions[token.currency] = {
+              balance: token?.currentBalance,
+              balanceInUsd: token?.currentBalanceInUsd,
+            };
+          }
+        });
+      }
+      const transactions =
+        await this.aaveRestClient.getTransactions(userAddress);
+
+      await this.handleWalletEntry(
+        userAddress,
+        currentSuppliedPositions,
+        transactions,
+        onWalletCreation,
+      );
+    } catch (err) {
+      this.logger.error(
+        err?.message ?? `Error updating wallet: ${userAddress}`,
+      );
+      throw new Error(err?.message ?? `Error updating wallet: ${userAddress}`);
+    }
   }
 
   private async handleWalletEntry(
@@ -96,154 +124,166 @@ export class WalletUseCase {
     transactions: UserTransactionItem[],
     onWalletCreation?: boolean,
   ) {
-    for (const key of Object.keys(currentSuppliedPositions)) {
-      // make it as one call to db
-      const wallet = await this.databaseRepository.findByAddress(userAddress);
+    try {
+      for (const key of Object.keys(currentSuppliedPositions)) {
+        // make it as one call to db
+        const wallet = await this.databaseRepository.findByAddress(userAddress);
 
-      const checkIfLastUpdateWasToday = (date: Date): boolean => {
-        const today = new Date();
-        return (
-          date.getDate() === today.getDate() &&
-          date.getMonth() === today.getMonth() &&
-          date.getFullYear() === today.getFullYear()
-        );
-      };
+        const checkIfLastUpdateWasToday = (date: Date): boolean => {
+          const today = new Date();
+          return (
+            date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear()
+          );
+        };
 
-      if (wallet) {
-        const tokenSupplied = wallet.tokenSupplied.find(
-          (t) => t.currency === key,
-        );
-        if (tokenSupplied) {
-          const lastFileData = tokenSupplied.fileData.at(-1);
-          if (lastFileData && !lastFileData.createdByCreateWalletEvent) {
-            const wasToday = checkIfLastUpdateWasToday(
-              tokenSupplied.lastUpdate,
-            );
-            if (wasToday) {
-              this.logger.warn(
-                `Wallet entry for address ${userAddress} and token ${key} was already updated today. Skipping update to avoid duplicates.`,
+        if (wallet) {
+          const tokenSupplied = wallet.tokenSupplied.find(
+            (t) => t.currency === key,
+          );
+          if (tokenSupplied) {
+            const lastFileData = tokenSupplied.fileData.at(-1);
+            if (lastFileData && !lastFileData.createdByCreateWalletEvent) {
+              const wasToday = checkIfLastUpdateWasToday(
+                tokenSupplied.lastUpdate,
               );
-              continue; // Skip to the next token if already updated today
+              if (wasToday) {
+                this.logger.warn(
+                  `Wallet entry for address ${userAddress} and token ${key} was already updated today. Skipping update to avoid duplicates.`,
+                );
+                continue; // Skip to the next token if already updated today
+              }
             }
           }
         }
-      }
-      const position = currentSuppliedPositions[key];
-      const currentDayTransactionsByToken =
-        TransactionsAnalyticUtils.filterTransactionsFromTodayAndByTokenSymbol(
-          transactions,
-          key,
-        );
-      const currentDayTransactionBalanceByToken =
-        TransactionsAnalyticUtils.getTransactionsBalance(
-          currentDayTransactionsByToken,
-        );
-
-      const currentDayTransactionsBalanceByTokenInUsd =
-        TransactionsAnalyticUtils.getTransactionsBalanceInUsd(
-          currentDayTransactionsByToken,
-        );
-
-      const { dailyProfitInPercentage, dailyProfit } =
-        TransactionsAnalyticUtils.getDailyProfit(
-          position.balance ?? 0,
-          wallet?.tokenSupplied
-            .find((t) => t.currency === key)
-            ?.fileData.find(
-              (c) =>
-                // get entry from yesterday
-                new Date(c.date).getDate() ===
-                new Date(
-                  new Date().setDate(new Date().getDate() - 1),
-                ).getDate(),
-            )?.balance ?? '0',
-
-          currentDayTransactionBalanceByToken,
-        );
-      const dateForInsert = new Date();
-      // const dateForInsert = new Date(
-      //   new Date().setDate(new Date().getDate() - 1),
-      // );
-      if (wallet) {
-        const tokenSuppliedIndex = wallet.tokenSupplied.findIndex(
-          (t) => t.currency === key,
-        );
-        if (tokenSuppliedIndex > -1) {
-          // update
-          const fileDataEntry: FileData = {
-            transactions: currentDayTransactionsByToken.map((tx) => tx.txHash),
-            transactionBalance: currentDayTransactionBalanceByToken.toString(),
-            transactionBalanceInUsd:
-              currentDayTransactionsBalanceByTokenInUsd.toString(),
-            balance: position.balance,
-            dailyProfit,
-            dailyProfitInPercentage,
-            date: dateForInsert,
-            ...(onWalletCreation
-              ? { createdByCreateWalletEvent: true }
-              : undefined),
-          };
-          wallet.tokenSupplied[tokenSuppliedIndex].currentBalance =
-            position.balance;
-          wallet.tokenSupplied[tokenSuppliedIndex].currentBalanceInUsd =
-            position.balanceInUsd;
-          wallet.tokenSupplied[tokenSuppliedIndex].lastUpdate = dateForInsert;
-          wallet.tokenSupplied[tokenSuppliedIndex].fileData.unshift(
-            fileDataEntry,
+        const position = currentSuppliedPositions[key];
+        const currentDayTransactionsByToken =
+          TransactionsAnalyticUtils.filterTransactionsFromTodayAndByTokenSymbol(
+            transactions,
+            key,
           );
-        } else {
-          // push
-          const fileDataEntry: FileData = {
-            transactions: currentDayTransactionsByToken.map((tx) => tx.txHash),
-            transactionBalance: currentDayTransactionBalanceByToken.toString(),
-            transactionBalanceInUsd:
-              currentDayTransactionsBalanceByTokenInUsd.toString(),
-            balance: position.balance,
-            dailyProfit,
-            dailyProfitInPercentage,
-            date: dateForInsert,
-            ...(onWalletCreation
-              ? { createdByCreateWalletEvent: true }
-              : undefined),
-          };
-          wallet.tokenSupplied.push({
-            currency: key,
-            currentBalance: position.balance,
-            currentBalanceInUsd: position.balanceInUsd,
-            lastUpdate: dateForInsert,
-            fileData: [fileDataEntry],
-          });
-        }
-        await this.databaseRepository.createOrUpdate(wallet);
-      } else {
-        // create new wallet
-        const fileDataEntry: FileData = {
-          transactions: currentDayTransactionsByToken.map((tx) => tx.txHash),
-          transactionBalance: currentDayTransactionBalanceByToken.toString(),
-          transactionBalanceInUsd:
-            currentDayTransactionsBalanceByTokenInUsd.toString(),
-          balance: position.balance,
-          dailyProfit,
-          dailyProfitInPercentage,
-          date: dateForInsert,
-          ...(onWalletCreation
-            ? { createdByCreateWalletEvent: true }
-            : undefined),
-        };
-        const newWallet: Wallet = {
-          address: userAddress,
-          tokenSupplied: [
-            {
+        const currentDayTransactionBalanceByToken =
+          TransactionsAnalyticUtils.getTransactionsBalance(
+            currentDayTransactionsByToken,
+          );
+
+        const currentDayTransactionsBalanceByTokenInUsd =
+          TransactionsAnalyticUtils.getTransactionsBalanceInUsd(
+            currentDayTransactionsByToken,
+          );
+
+        const { dailyProfitInPercentage, dailyProfit } =
+          TransactionsAnalyticUtils.getDailyProfit(
+            position.balance ?? 0,
+            wallet?.tokenSupplied
+              .find((t) => t.currency === key)
+              ?.fileData.find(
+                (c) =>
+                  // get entry from yesterday
+                  new Date(c.date).getDate() ===
+                  new Date(
+                    new Date().setDate(new Date().getDate() - 1),
+                  ).getDate(),
+              )?.balance ?? '0',
+
+            currentDayTransactionBalanceByToken,
+          );
+        const dateForInsert = new Date();
+        // const dateForInsert = new Date(
+        //   new Date().setDate(new Date().getDate() - 1),
+        // );
+        if (wallet) {
+          const tokenSuppliedIndex = wallet.tokenSupplied.findIndex(
+            (t) => t.currency === key,
+          );
+          if (tokenSuppliedIndex > -1) {
+            // update
+            const fileDataEntry: FileData = {
+              transactions: currentDayTransactionsByToken.map(
+                (tx) => tx.txHash,
+              ),
+              transactionBalance:
+                currentDayTransactionBalanceByToken.toString(),
+              transactionBalanceInUsd:
+                currentDayTransactionsBalanceByTokenInUsd.toString(),
+              balance: position.balance,
+              dailyProfit,
+              dailyProfitInPercentage,
+              date: dateForInsert,
+              ...(onWalletCreation
+                ? { createdByCreateWalletEvent: true }
+                : undefined),
+            };
+            wallet.tokenSupplied[tokenSuppliedIndex].currentBalance =
+              position.balance;
+            wallet.tokenSupplied[tokenSuppliedIndex].currentBalanceInUsd =
+              position.balanceInUsd;
+            wallet.tokenSupplied[tokenSuppliedIndex].lastUpdate = dateForInsert;
+            wallet.tokenSupplied[tokenSuppliedIndex].fileData.unshift(
+              fileDataEntry,
+            );
+          } else {
+            // push
+            const fileDataEntry: FileData = {
+              transactions: currentDayTransactionsByToken.map(
+                (tx) => tx.txHash,
+              ),
+              transactionBalance:
+                currentDayTransactionBalanceByToken.toString(),
+              transactionBalanceInUsd:
+                currentDayTransactionsBalanceByTokenInUsd.toString(),
+              balance: position.balance,
+              dailyProfit,
+              dailyProfitInPercentage,
+              date: dateForInsert,
+              ...(onWalletCreation
+                ? { createdByCreateWalletEvent: true }
+                : undefined),
+            };
+            wallet.tokenSupplied.push({
               currency: key,
               currentBalance: position.balance,
               currentBalanceInUsd: position.balanceInUsd,
               lastUpdate: dateForInsert,
               fileData: [fileDataEntry],
-            },
-          ],
-        };
-        await this.databaseRepository.createOrUpdate(newWallet);
+            });
+          }
+          await this.databaseRepository.createOrUpdate(wallet);
+        } else {
+          // create new wallet
+          const fileDataEntry: FileData = {
+            transactions: currentDayTransactionsByToken.map((tx) => tx.txHash),
+            transactionBalance: currentDayTransactionBalanceByToken.toString(),
+            transactionBalanceInUsd:
+              currentDayTransactionsBalanceByTokenInUsd.toString(),
+            balance: position.balance,
+            dailyProfit,
+            dailyProfitInPercentage,
+            date: dateForInsert,
+            ...(onWalletCreation
+              ? { createdByCreateWalletEvent: true }
+              : undefined),
+          };
+          const newWallet: Wallet = {
+            address: userAddress,
+            tokenSupplied: [
+              {
+                currency: key,
+                currentBalance: position.balance,
+                currentBalanceInUsd: position.balanceInUsd,
+                lastUpdate: dateForInsert,
+                fileData: [fileDataEntry],
+              },
+            ],
+          };
+          await this.databaseRepository.createOrUpdate(newWallet);
+        }
       }
+    } catch (err) {
+      throw new Error(
+        err?.message ?? `Error handling wallet entry for ${userAddress}`,
+      );
     }
   }
 }
