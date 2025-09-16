@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Render,
   Res,
 } from '@nestjs/common';
@@ -24,7 +25,7 @@ export class BasicController {
   @Get()
   @Render('index')
   async getDailyProfitData() {
-    const wallets = await this.walletUseCase.getWalletsData();
+    const wallets = await this.walletUseCase.getWalletsDataWithFilters();
     return { wallets };
   }
 
@@ -45,10 +46,13 @@ export class BasicController {
     @Param('walletaddress') walletAddress: string,
     @Param('token', UppercasePipe) token: string,
     @Res() res: Response,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
   ) {
     const { bufferFile, fileName } = await this.fileUseCase.generateExcelReport(
       walletAddress,
       token,
+      { year, month },
     );
     res.set({
       'Content-Type':

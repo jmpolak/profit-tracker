@@ -10,6 +10,8 @@ import { SuppliedPositions } from 'src/core/entity/transaction';
 import { FileData, Wallet } from 'src/frameworks/database/model/wallet.model';
 import { TransactionsAnalyticUtils } from 'src/application/services/transactions/transactions-analytics-utils';
 import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
+import { WalletFilterUtils } from 'src/application/services/wallet-filter/wallet-filter-utils';
+import { WalletWithFilters } from 'src/core/entity/wallet';
 
 @Injectable()
 export class WalletUseCase {
@@ -18,6 +20,7 @@ export class WalletUseCase {
     private aaveRestClient: IAaveRestClientRepository,
     private databaseRepository: IDatabaseRepository<Wallet>,
   ) {}
+
   async removeWallet(walletAddress: string) {
     return await this.databaseRepository.delete(walletAddress);
   }
@@ -41,15 +44,17 @@ export class WalletUseCase {
     }
   }
 
-  async getWalletsData(): Promise<(Wallet | null)[]> {
+  async getWalletsDataWithFilters(): Promise<WalletWithFilters[]> {
+    return (await this.getWalletsData()).map((w) => ({
+      address: w.address,
+      tokenSupplied: w.tokenSupplied,
+      filters: WalletFilterUtils.getAvailableYearsAndMonthsFromWallet(w),
+    }));
+  }
+
+  async getWalletsData(): Promise<Wallet[]> {
     try {
-      const allWallets = await this.databaseRepository.findAll();
-      const results = await Promise.all(
-        allWallets.map(async (wallet) => {
-          return this.getWalletData(wallet.address);
-        }),
-      );
-      return results;
+      return await this.databaseRepository.findAll();
     } catch (err) {
       this.logger.error(err?.message ?? `Error getting all wallets`);
       throw new InternalServerErrorException(

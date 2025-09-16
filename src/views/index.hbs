@@ -152,9 +152,26 @@
           {{#each this.tokenSupplied}}
             <li>
               <strong>Currency:</strong> {{this.currency}}
-              <form method="GET" action="/get-file/{{../this.address}}/{{this.currency}}">
-                <button type="submit">Download File</button>
-              </form>
+              <form method="GET" action="/get-file/{{../this.address}}/{{this.currency}}" class="download-form" data-filters="{{json ../this.filters}}">
+  <label>
+    Year:
+    <select name="year" class="year-select">
+      <option value="">All</option>
+      {{#each ../this.filters}}
+        <option value="{{this.year}}">{{this.year}}</option>
+      {{/each}}
+    </select>
+  </label>
+
+  <label>
+    Month:
+    <select name="month" class="month-select">
+      <option value="">All</option>
+      <!-- JS will populate this -->
+    </select>
+  </label>
+  <button type="submit">Download File</button>
+</form>
             </li>
           {{/each}}
         </ul>
@@ -178,6 +195,39 @@
 </div>
 
   <script>
+
+    document.querySelectorAll('.download-form').forEach((form) => {
+
+    const filters = JSON.parse(form.dataset.filters || '[]');
+    const yearSelect = form.querySelector('.year-select');
+    const monthSelect = form.querySelector('.month-select');
+
+    function populateMonths(year) {
+      monthSelect.innerHTML = '<option value="">All</option>';
+      if (!year) return;
+
+      const yearFilter = filters.find(f => f.year == Number(year));
+      if (!yearFilter) return;
+
+      yearFilter.months.forEach(monthNum => {
+        const month = monthNum.toString().padStart(2, '0');
+        const monthName = new Date(2000, monthNum - 1).toLocaleString('default', { month: 'long' });
+        const option = document.createElement('option');
+        option.value = month;
+        option.textContent = monthName;
+        monthSelect.appendChild(option);
+      });
+    }
+
+    yearSelect.addEventListener('change', (e) => {
+      populateMonths(e.target.value);
+    });
+
+    // Populate on load if a year is preselected
+    populateMonths(yearSelect.value);
+  });
+
+
     document.getElementById('add-wallet-form').addEventListener('submit', async function (e) {
       e.preventDefault();
 
