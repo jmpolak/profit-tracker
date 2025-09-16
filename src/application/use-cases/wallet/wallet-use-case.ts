@@ -61,7 +61,7 @@ export class WalletUseCase {
   async updateWallets() {
     try {
       const allWallets = await this.databaseRepository.findAll();
-      await Promise.all(
+      await Promise.allSettled(
         allWallets.map(async (wallet) => {
           return this.updateWallet(wallet.address);
         }),

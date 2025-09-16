@@ -8,15 +8,15 @@ export class DailyUpdateWalletCronJob {
 
   constructor(private walletUseCase: WalletUseCase) {}
   // Runs every day at 23:50 (11:50 PM)
-  @Cron('55 23 * * *')
+  @Cron('59 23 * * *')
   async handleCron() {
-    this.logger.debug('Called every day at 23:50');
     try {
+      this.logger.log('Called every day at 23:59');
       await this.walletUseCase.updateWallets();
+      this.logger.log('Cron job ended');
     } catch (err) {
-      this.logger.debug(err);
+      this.logger.error(err?.message ?? 'Cron job crashed');
     }
-    this.logger.debug('Cron job ended');
     // Your cron job logic here
   }
 }
