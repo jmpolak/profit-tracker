@@ -1,9 +1,5 @@
 import { Err, UserTransactionItem } from '@aave/client';
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { IAaveRestClientRepository } from 'src/core/abstract/aave-rest-client/aave-rest-client-repository';
 import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/database-repository';
 import { SuppliedPositions } from 'src/core/entity/transaction';
@@ -12,13 +8,14 @@ import { TransactionsAnalyticUtils } from 'src/application/services/transactions
 import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 import { WalletFilterUtils } from 'src/application/services/wallet-filter/wallet-filter-utils';
 import { WalletWithFilters } from 'src/core/entity/wallet';
+import { LoggerPort } from 'src/core/abstract/logger-port/logger-port';
 
 @Injectable()
 export class WalletUseCase {
-  private readonly logger = new Logger(WalletUseCase.name);
   constructor(
     private aaveRestClient: IAaveRestClientRepository,
     private databaseRepository: IDatabaseRepository<Wallet>,
+    private logger: LoggerPort,
   ) {}
 
   async removeWallet(walletAddress: string) {

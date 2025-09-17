@@ -2,7 +2,7 @@ import { UserTransactionItem } from '@aave/client';
 import { TransactionType } from 'src/core/entity/transaction';
 import { BigNumber } from 'bignumber.js';
 import { FileData } from 'src/frameworks/database/model/wallet.model';
-export class TransactionsAnalyticUtils {
+export abstract class TransactionsAnalyticUtils {
   static getOverallProfit(fileData: FileData[]) {
     const sumOfProfit = fileData.reduce((sum, i) => {
       return sum.plus(new BigNumber(i.dailyProfit));

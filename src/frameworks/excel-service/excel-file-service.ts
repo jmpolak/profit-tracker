@@ -8,10 +8,6 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class ExcelFileService implements IExcelFileServicePort {
   async generateFile<T, S>(data: T[], footer?: S[]): Promise<Buffer> {
-    if (data.length === 0) {
-      throw new Error('No data provided to generate the Excel file.');
-    }
-
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Report');
     const keys = Object.keys(data.at(0) ?? {});

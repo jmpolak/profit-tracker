@@ -1,6 +1,6 @@
 import { Wallet } from 'src/frameworks/database/model/wallet.model';
 
-export class WalletFilterUtils {
+export abstract class WalletFilterUtils {
   static getAvailableYearsAndMonthsFromWallet(
     wallet: Wallet,
   ): { year: number; months: number[] }[] {
