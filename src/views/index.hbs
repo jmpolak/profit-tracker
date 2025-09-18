@@ -2,176 +2,237 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Wallets</title>
   <style>
+    :root {
+      --bg-color: #f4f6f8;
+      --primary: #4CAF50;
+      --primary-dark: #388E3C;
+      --danger: #e74c3c;
+      --text-dark: #333;
+      --text-light: #777;
+      --card-bg: #fff;
+      --border-radius: 10px;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      --transition: all 0.3s ease;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f6f8;
+      background-color: var(--bg-color);
       margin: 0;
       padding: 2rem;
-      color: #333;
+      color: var(--text-dark);
+      line-height: 1.6;
     }
 
     h1 {
       color: #222;
-      margin-bottom: 1rem;
+      margin-bottom: 2rem;
     }
 
     .wallet {
-      background-color: #fff;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      margin-bottom: 1.5rem;
+      background-color: var(--card-bg);
+      padding: 1.5rem 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+      transition: var(--transition);
+    }
+
+    .wallet:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    .wallet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
     }
 
     .wallet h2 {
       font-size: 1.1rem;
-      margin-bottom: 0.5rem;
-      color: #555;
+      color: #444;
+      margin: 0;
     }
 
     ul {
-      list-style-type: none;
+      list-style: none;
       padding-left: 0;
     }
 
     li {
-      margin-bottom: 0.5rem;
+      margin-bottom: 1.2rem;
+      background-color: #fafafa;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
     }
 
-    form {
-      display: inline;
-    }
-
-    button {
-      background-color: #4CAF50;
+    .remove-wallet-btn {
+      background-color: var(--danger);
       color: white;
       border: none;
       padding: 0.4rem 0.8rem;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 0.9rem;
+      transition: var(--transition);
     }
 
-    button:hover {
-      background-color: #45a049;
+    .remove-wallet-btn:hover {
+      background-color: #c0392b;
+    }
+
+    form {
+      display: block;
+      margin-top: 0.5rem;
+    }
+
+    label {
+      font-weight: 500;
+      margin-right: 0.5rem;
+    }
+
+    select {
+      padding: 0.4rem 0.6rem;
+      margin-right: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+
+    button[type="submit"] {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+
+    button[type="submit"]:hover {
+      background-color: var(--primary-dark);
     }
 
     .no-tokens {
       font-style: italic;
-      color: #777;
+      color: var(--text-light);
     }
 
     hr {
-      margin: 3rem 0;
+      margin: 4rem 0 3rem;
       border: none;
       border-top: 1px solid #ddd;
     }
 
     .add-wallet-container {
-  background-color: #fff;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-  max-width: 500px;
-  margin-top: 2rem;
-  margin-bottom: 3rem;
-}
-
-.add-wallet-container h2 {
-  margin-bottom: 1.5rem;
-  font-size: 1.4rem;
-  color: #333;
-}
-
-.form-group {
-  margin-bottom: 1.2rem;
-}
-
-.form-group label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 1rem;
-  box-sizing: border-box;
-}
-
-.add-wallet-container button {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.add-wallet-container button:hover {
-  background-color: #166619;
-}
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
+      background-color: var(--card-bg);
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      max-width: 500px;
+      margin-top: 2rem;
     }
 
-    input[type="text"] {
+    .add-wallet-container h2 {
+      margin-bottom: 1.5rem;
+      font-size: 1.4rem;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input {
       width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
-      border-radius: 4px;
+      padding: 0.6rem 0.8rem;
       border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
       box-sizing: border-box;
+      transition: var(--transition);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+    }
+
+    .add-wallet-container button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .add-wallet-container button:hover {
+      background-color: var(--primary-dark);
+    }
+
+    @media (max-width: 600px) {
+      .wallet-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
     }
   </style>
 </head>
 <body>
+
   <h1>Wallets List</h1>
 
   {{#each wallets}}
     <div class="wallet">
-        <div class="wallet-header" style="display: flex; justify-content: space-between; align-items: center;">
-    <h2>Wallet Address: {{this.address}}</h2>
-    <button class="remove-wallet-btn" data-address="{{this.address}}" style="background-color:#e74c3c;">
-      Remove
-    </button>
-  </div>
+      <div class="wallet-header">
+        <h2>Wallet Address: {{this.address}}</h2>
+        <button class="remove-wallet-btn" data-address="{{this.address}}">
+          Remove
+        </button>
+      </div>
       {{#if this.tokenSupplied}}
         <ul>
           {{#each this.tokenSupplied}}
             <li>
               <strong>Currency:</strong> {{this.currency}}
               <form method="GET" action="/get-file/{{../this.address}}/{{this.currency}}" class="download-form" data-filters="{{json ../this.filters}}">
-  <label>
-    Year:
-    <select name="year" class="year-select">
-      <option value="">All</option>
-      {{#each ../this.filters}}
-        <option value="{{this.year}}">{{this.year}}</option>
-      {{/each}}
-    </select>
-  </label>
-
-  <label>
-    Month:
-    <select name="month" class="month-select">
-      <option value="">All</option>
-      <!-- JS will populate this -->
-    </select>
-  </label>
-  <button type="submit">Download File</button>
-</form>
+                <label>
+                  Year:
+                  <select name="year" class="year-select">
+                    <option value="">All</option>
+                    {{#each ../this.filters}}
+                      <option value="{{this.year}}">{{this.year}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label>
+                  Month:
+                  <select style="width: 100px;" name="month" class="month-select">
+                    <option value="">All</option>
+                    <!-- JS will populate -->
+                  </select>
+                </label>
+                <button type="submit">Download File</button>
+              </form>
             </li>
           {{/each}}
         </ul>
@@ -183,16 +244,16 @@
 
   <hr />
 
-<div class="add-wallet-container">
-  <h2>Add a New Wallet</h2>
-  <form id="add-wallet-form">
-    <div class="form-group">
-      <label for="address">Wallet Address</label>
-      <input type="text" id="address" name="address" placeholder="e.g. 0xABC123..." required />
-    </div>
-    <button type="submit">➕ Add Wallet</button>
-  </form>
-</div>
+  <div class="add-wallet-container">
+    <h2>Add a New Wallet</h2>
+    <form id="add-wallet-form">
+      <div class="form-group">
+        <label for="address">Wallet Address</label>
+        <input type="text" id="address" name="address" placeholder="e.g. 0xABC123..." required />
+      </div>
+      <button type="submit">➕ Add Wallet</button>
+    </form>
+  </div>
 
   <script>
 
