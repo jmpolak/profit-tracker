@@ -1,0 +1,22 @@
+# Dockerfile.dev
+
+FROM node:18
+
+# Set timezone
+ENV TZ=Europe/Berlin
+
+# Install tzdata and set timezone
+RUN apt-get update && apt-get install -y tzdata && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000 9229
+
+CMD [ "npm", "run", "start:dev" ]

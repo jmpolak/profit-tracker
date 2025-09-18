@@ -1,0 +1,32 @@
+FROM node:18 as builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY ./ ./
+
+RUN npm run build
+
+# ---- Production stage ----
+FROM node:18-slim
+
+ENV NODE_ENV=production
+ENV TZ=Europe/Berlin
+
+RUN apt-get update && apt-get install -y tzdata && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone && \
+    apt-get clean
+
+WORKDIR /app
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+
+RUN npm ci --omit=dev
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start:prod"]
