@@ -5,6 +5,7 @@ import { FileModule } from './application/use-cases/file/file.module';
 import { DailyUpdateWalletCronJobModule } from './frameworks/cronjobs/daily-update-wallet-entry/daily-update-wallet.module';
 import { LoggerMiddleware } from './interface/middleware/http-request-logger';
 import { LoggerModule } from './frameworks/logger/logger-module';
+import { UnhandledHttpExceptionsFilter } from './interface/exception-filters/unhandled-http-exceptions-filter';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { LoggerModule } from './frameworks/logger/logger-module';
     LoggerModule,
   ],
   controllers: [BasicController],
+  providers: [UnhandledHttpExceptionsFilter],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

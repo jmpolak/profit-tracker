@@ -51,7 +51,7 @@ export class FileUseCase {
       ];
       if (tokenData.length === 0) {
         throw new Error(
-          `No data provided to generate the Excel file for wallet ${wallet} for currency ${token} with filter ${filters}`,
+          `No data provided to generate the Excel file for wallet ${wallet} for currency ${token} with filter ${JSON.stringify(filters)}`,
         );
       }
       return {
