@@ -1,8 +1,5 @@
 import { IExcelFileServicePort } from 'src/core/abstract/excel-file-service/excel-file-service-port';
 import * as ExcelJS from 'exceljs';
-import * as fs from 'fs';
-import * as path from 'path';
-
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -21,14 +18,21 @@ export class ExcelFileService implements IExcelFileServicePort {
     }));
 
     data.forEach((rowData, index) => {
-      Object.keys(rowData ?? {}).forEach((key) =>
-        rowData[key] instanceof Date
-          ? (rowData[key] = this.formatDateTime(rowData[key]))
-          : rowData[key],
-      );
+      rowData['transactions'] = [
+        '0x9beb4ba22973a69f108f1d7f298f4c2755b42b65e74b90f46f7e030ecde4998f',
+        '0x9beb4ba22973a69f108f1d7f298f4c2755b42b65e74b90f46f7e030ecde4998f',
+      ];
+      Object.keys(rowData ?? {}).forEach((key) => {
+        if (rowData[key] instanceof Date)
+          rowData[key] = this.formatDateTime(rowData[key]);
+        if (Array.isArray(rowData[key]))
+          rowData[key] = rowData[key].join(',\n');
+      });
       const row = worksheet.addRow(rowData);
       if (row.number % 2 === 0) {
         row.eachCell((cell) => {
+          cell.text.length >= 25 ? (cell.note = cell.text) : undefined;
+          cell.alignment = { wrapText: true };
           cell.fill = {
             type: 'pattern',
             pattern: 'solid',
@@ -40,9 +44,10 @@ export class ExcelFileService implements IExcelFileServicePort {
 
     if (footer && footer.length > 0) {
       worksheet.addRow([]);
+
       footer.forEach((data) => {
         const rowData = Object.entries(data ?? []);
-        worksheet.addRow(rowData);
+        worksheet.addRow(rowData.map((v) => v.join(' : ')));
       });
     }
 
