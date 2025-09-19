@@ -45,10 +45,12 @@ export class FileUseCase {
           );
         });
       }
-
-      const footer = [
-        { sum: TransactionsAnalyticUtils.getOverallProfit(tokenData) },
-      ];
+      interface FoterType {
+        totalProfit: string;
+      }
+      const footer: FoterType = {
+        totalProfit: TransactionsAnalyticUtils.getOverallProfit(tokenData),
+      };
       if (tokenData.length === 0) {
         throw new Error(
           `No data provided to generate the Excel file for wallet ${wallet} for currency ${token} with filter ${JSON.stringify(filters)}`,
@@ -57,7 +59,7 @@ export class FileUseCase {
       return {
         bufferFile: await this.excelFileService.generateFile<
           ExcelData,
-          { sum: string }
+          FoterType
         >(tokenData, footer),
         fileName: `${wallet}-${token}-${filters?.year ? filters.year + (filters?.month ? '-' + filters.month : '') : this.getTodayDate()}.xlsx`,
       };
