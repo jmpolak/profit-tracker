@@ -7,20 +7,17 @@ services:
     ports:
       - '27017:27017'
     volumes:
-      - ./mongo-data:/data/db
+      - ../mongo-data:/data/db
 
   node-app:
     container_name: node-app
     build:
-      context: .
-      dockerfile: Dockerfile.dev
-    volumes:
-      - .:/app
-      - /app/node_modules # Prevent overwriting node_modules
+      context: ..
+      dockerfile: docker-env/Dockerfile.prod
     ports:
-      - '8080:3000' # App port
-      - '9229:9229' # Debugging port
+      - '8080:3000'
     environment:
+      - NODE_ENV=production
       - TZ=Europe/Berlin
     depends_on:
       - mongo
