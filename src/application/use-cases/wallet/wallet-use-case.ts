@@ -106,8 +106,8 @@ export class WalletUseCase {
         walletWithRecentUpdatedTokenSupplies.tokenSupplied.forEach((token) => {
           if (!currentSuppliedPositions[token.currency]) {
             currentSuppliedPositions[token.currency] = {
-              balance: token?.currentBalance,
-              balanceInUsd: token?.currentBalanceInUsd,
+              balance: '0',
+              balanceInUsd: '0',
             };
           }
         });
