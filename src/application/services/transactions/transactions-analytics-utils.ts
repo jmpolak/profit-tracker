@@ -15,17 +15,16 @@ export abstract class TransactionsAnalyticUtils {
     tokenSymbol: string,
   ) {
     const today = new Date();
-    // Get year, month, day of today in UTC or local time (choose one consistently)
-    const todayYear = today.getUTCFullYear();
-    const todayMonth = today.getUTCMonth();
-    const todayDate = today.getUTCDate();
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth();
+    const todayDate = today.getDate();
 
     return transactions.filter((tx) => {
-      const txDate = new Date(tx.timestamp);
+      const txDate = new Date(tx.timestamp); // attention: tx.timestamp is UTC but we use local time
       return (
-        txDate.getUTCFullYear() === todayYear &&
-        txDate.getUTCMonth() === todayMonth &&
-        txDate.getUTCDate() === todayDate &&
+        txDate.getFullYear() === todayYear &&
+        txDate.getMonth() === todayMonth &&
+        txDate.getDate() === todayDate &&
         tx['reserve']?.aToken?.symbol === tokenSymbol
       );
     });
