@@ -187,7 +187,13 @@ export class WalletUseCase {
           TransactionsAnalyticUtils.getTransactionsBalanceInUsd(
             currentDayTransactionsByToken,
           );
-
+        if (currentDayTransactionsByToken.length > 0) {
+          currentDayTransactionsByToken.forEach((tx) =>
+            this.logger.log(
+              `Transaction: ${tx.txHash}, Time: ${tx.timestamp} will be handled`,
+            ),
+          );
+        }
         const { dailyProfitInPercentage, dailyProfit } =
           TransactionsAnalyticUtils.getDailyProfit(
             position.balance ?? 0,
