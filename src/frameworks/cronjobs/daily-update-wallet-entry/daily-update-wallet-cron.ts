@@ -10,7 +10,7 @@ export class DailyUpdateWalletCronJob {
     private logger: LoggerPort,
   ) {}
   // Runs every day at 23:50 (11:50 PM)
-  @Cron('59 23 * * *')
+  @Cron('55 23 * * *')
   async handleCron() {
     try {
       this.logger.log(
