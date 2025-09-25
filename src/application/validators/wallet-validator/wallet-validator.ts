@@ -1,11 +1,12 @@
 import { BadRequestException } from '@nestjs/common';
-import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/database-repository';
+import { IDataBaseRepository } from 'src/core/abstract/database-repository.ts/database-repository';
+
 import { Wallet } from 'src/frameworks/database/model/wallet.model';
 
 export class WalletValidator {
   static async assertValid(
     address: string,
-    databaseRepository: IDatabaseRepository<Wallet>,
+    databaseRepository: IDataBaseRepository,
   ): Promise<void> {
     if (!this.isValid(address)) {
       throw new BadRequestException(`Invalid wallet address: ${address}`);
@@ -17,7 +18,7 @@ export class WalletValidator {
 
   static async walletValidForFileGeneration(
     address: string,
-    databaseRepository: IDatabaseRepository<Wallet>,
+    databaseRepository: IDataBaseRepository,
   ) {
     const wallet = await WalletValidator.isInDatabase(
       address,
@@ -43,9 +44,10 @@ export class WalletValidator {
 
   private static async isInDatabase(
     address: string,
-    databaseRepository: IDatabaseRepository<Wallet>,
+    databaseRepository: IDataBaseRepository,
   ) {
-    const wallet = await databaseRepository.findByAddress(address);
+    const wallet =
+      await databaseRepository.walletDataBaseRepository.findByAddress(address);
     return wallet;
   }
 }

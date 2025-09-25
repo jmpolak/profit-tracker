@@ -1,7 +1,6 @@
 import { Err, UserTransactionItem } from '@aave/client';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { IAaveRestClientRepository } from 'src/core/abstract/aave-rest-client/aave-rest-client-repository';
-import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/database-repository';
 import { SuppliedPositions } from 'src/core/entity/transaction';
 import { FileData, Wallet } from 'src/frameworks/database/model/wallet.model';
 import { TransactionsAnalyticUtils } from 'src/application/services/transactions/transactions-analytics-utils';
@@ -9,23 +8,26 @@ import { WalletValidator } from 'src/application/validators/wallet-validator/wal
 import { WalletFilterUtils } from 'src/application/services/wallet-filter/wallet-filter-utils';
 import { WalletWithFilters } from 'src/core/entity/wallet';
 import { LoggerPort } from 'src/core/abstract/logger-port/logger-port';
+import { IDataBaseRepository } from 'src/core/abstract/database-repository.ts/database-repository';
 
 @Injectable()
 export class WalletUseCase {
   constructor(
     private aaveRestClient: IAaveRestClientRepository,
-    private databaseRepository: IDatabaseRepository<Wallet>,
+    private databaseRepository: IDataBaseRepository,
     private logger: LoggerPort,
   ) {}
 
   async removeWallet(walletAddress: string) {
-    return await this.databaseRepository.delete(walletAddress);
+    return await this.databaseRepository.walletDataBaseRepository.delete(
+      walletAddress,
+    );
   }
 
   async createWallet(walletAddress: string) {
     await WalletValidator.assertValid(walletAddress, this.databaseRepository);
     try {
-      await this.databaseRepository.createOrUpdate({
+      await this.databaseRepository.walletDataBaseRepository.createOrUpdate({
         address: walletAddress,
         tokenSupplied: [],
       });
@@ -51,7 +53,7 @@ export class WalletUseCase {
 
   async getWalletsData(): Promise<Wallet[]> {
     try {
-      return await this.databaseRepository.findAll();
+      return await this.databaseRepository.walletDataBaseRepository.findAll();
     } catch (err) {
       this.logger.error(err?.message ?? `Error getting all wallets`);
       throw new InternalServerErrorException(
@@ -62,7 +64,8 @@ export class WalletUseCase {
 
   async updateWallets() {
     try {
-      const allWallets = await this.databaseRepository.findAll();
+      const allWallets =
+        await this.databaseRepository.walletDataBaseRepository.findAll();
       await Promise.allSettled(
         allWallets.map(async (wallet) => {
           return this.updateWallet(wallet.address);
@@ -76,7 +79,10 @@ export class WalletUseCase {
 
   private async getWalletData(userAddress: string): Promise<Wallet | null> {
     try {
-      const wallet = await this.databaseRepository.findByAddress(userAddress);
+      const wallet =
+        await this.databaseRepository.walletDataBaseRepository.findByAddress(
+          userAddress,
+        );
       return wallet;
     } catch (err) {
       this.logger.error(err?.message ?? `Error getting wallet: ${userAddress}`);
@@ -89,7 +95,7 @@ export class WalletUseCase {
       const currentSuppliedPositions =
         await this.aaveRestClient.getCurrentBalance(userAddress);
       const walletWithRecentUpdatedTokenSupplies =
-        await this.databaseRepository.getAllRecentUpdatedTokenSuppliedByWalletAddress(
+        await this.databaseRepository.walletDataBaseRepository.getAllRecentUpdatedTokenSuppliedByWalletAddress(
           userAddress,
         );
       // if user withdraw all his funds, currentSuppliedPositions will be empty but we want to keep the last known balance in db
@@ -133,7 +139,10 @@ export class WalletUseCase {
     try {
       for (const key of Object.keys(currentSuppliedPositions)) {
         // make it as one call to db
-        const wallet = await this.databaseRepository.findByAddress(userAddress);
+        const wallet =
+          await this.databaseRepository.walletDataBaseRepository.findByAddress(
+            userAddress,
+          );
 
         const checkIfLastUpdateWasToday = (date: Date): boolean => {
           const today = new Date();
@@ -248,7 +257,9 @@ export class WalletUseCase {
               fileData: [fileDataEntry],
             });
           }
-          await this.databaseRepository.createOrUpdate(wallet);
+          await this.databaseRepository.walletDataBaseRepository.createOrUpdate(
+            wallet,
+          );
         } else {
           // create new wallet
           const fileDataEntry: FileData = {
@@ -276,7 +287,9 @@ export class WalletUseCase {
               },
             ],
           };
-          await this.databaseRepository.createOrUpdate(newWallet);
+          await this.databaseRepository.walletDataBaseRepository.createOrUpdate(
+            newWallet,
+          );
         }
       }
     } catch (err) {

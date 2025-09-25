@@ -1,16 +1,16 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/database-repository';
 import { IExcelFileServicePort } from 'src/core/abstract/excel-file-service/excel-file-service-port';
 import { FileData, Wallet } from 'src/frameworks/database/model/wallet.model';
 import { TransactionsAnalyticUtils } from 'src/application/services/transactions/transactions-analytics-utils';
 import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 import { LoggerPort } from 'src/core/abstract/logger-port/logger-port';
+import { IDataBaseRepository } from 'src/core/abstract/database-repository.ts/database-repository';
 
 @Injectable()
 export class FileUseCase {
   constructor(
     private readonly excelFileService: IExcelFileServicePort,
-    private readonly db: IDatabaseRepository<Wallet>,
+    private readonly db: IDataBaseRepository,
     private logger: LoggerPort,
   ) {}
 
@@ -22,7 +22,8 @@ export class FileUseCase {
     await WalletValidator.walletValidForFileGeneration(wallet, this.db);
     try {
       type ExcelData = Omit<FileData, 'createdByCreateWalletEvent'>;
-      const dbWallet = await this.db.findByAddress(wallet);
+      const dbWallet =
+        await this.db.walletDataBaseRepository.findByAddress(wallet);
       let tokenData: ExcelData[] =
         dbWallet?.tokenSupplied
           .find((t) => t.currency === token)

@@ -1,23 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { Wallet } from './model/wallet.model';
-import { Model } from 'mongoose';
-import { IDatabaseRepository } from 'src/core/abstract/database-client.ts/database-repository';
+import { Wallet } from 'src/frameworks/database/model/wallet.model';
 import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Injectable } from '@nestjs/common';
+import { IWalletDatabaseRepository } from 'src/core/abstract/database-repository.ts/wallet-repository/wallet-database-repository';
 
 @Injectable()
-export class MongodbClient implements IDatabaseRepository<Wallet> {
+export class WalletDataBaseRepository implements IWalletDatabaseRepository {
   constructor(
     @InjectModel(Wallet.name)
     private readonly mongoClient: Model<Wallet>,
-  ) {} // make maybe generic class later
-
-  async findByAddress(address: string): Promise<Wallet | null> {
-    const wallet = await this.mongoClient.findOne({ address });
-    // if (!wallet) {
-    //   throw new Error(`Wallet with address ${address} not found`);
-    // }
-    return wallet;
-  }
+  ) {}
 
   async createOrUpdate(wallet: Wallet): Promise<Wallet> {
     return await this.mongoClient.findOneAndUpdate(
@@ -36,6 +28,11 @@ export class MongodbClient implements IDatabaseRepository<Wallet> {
   }
   async findAll(): Promise<Wallet[]> {
     return await this.mongoClient.find();
+  }
+
+  async findByAddress(address: string): Promise<Wallet | null> {
+    const wallet = await this.mongoClient.findOne({ address });
+    return wallet;
   }
 
   async getAllRecentUpdatedTokenSuppliedByWalletAddress(
