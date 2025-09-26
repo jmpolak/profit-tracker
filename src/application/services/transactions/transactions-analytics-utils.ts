@@ -3,6 +3,11 @@ import { TransactionType } from 'src/core/entity/transaction';
 import { BigNumber } from 'bignumber.js';
 import { FileData } from 'src/frameworks/database/model/wallet.model';
 export abstract class TransactionsAnalyticUtils {
+  // @ToDo UserTransactionItem -> this helper class is
+  // only compatible with aave
+  // if we want to also use jupyter or other site
+  // we should use own classes (transform aave/ jupyter responses to our classes)
+
   static getOverallProfit(fileData: FileData[]) {
     const sumOfProfit = fileData.reduce((sum, i) => {
       return sum.plus(new BigNumber(i.dailyProfit));
@@ -39,10 +44,30 @@ export abstract class TransactionsAnalyticUtils {
     const lastBalanceBN = new BigNumber(lastBalance);
     const netDepositsWithdrawalsBN = new BigNumber(netDepositsWithdrawals);
     const dailyProfit = lastBalanceBN.isZero()
-      ? new BigNumber(0)
+      ? (() => {
+          if (netDepositsWithdrawalsBN.isZero()) {
+            return new BigNumber(0);
+          }
+          const dailyProfitTemp = balanceTodayBN.minus(
+            netDepositsWithdrawalsBN,
+          );
+          return dailyProfitTemp.isGreaterThan(new BigNumber(0))
+            ? dailyProfitTemp
+            : new BigNumber(0);
+        })()
       : balanceTodayBN.minus(lastBalanceBN).minus(netDepositsWithdrawalsBN);
     const dailyProfitInPercentage = lastBalanceBN.isZero()
-      ? new BigNumber(0)
+      ? (() => {
+          if (netDepositsWithdrawalsBN.isZero()) {
+            return new BigNumber(0);
+          }
+          const dailyProfitTemp = dailyProfit
+            .dividedBy(netDepositsWithdrawalsBN)
+            .multipliedBy(100);
+          return dailyProfitTemp.isGreaterThan(0)
+            ? dailyProfitTemp
+            : new BigNumber(0);
+        })()
       : dailyProfit.dividedBy(lastBalanceBN).multipliedBy(100);
 
     return {
