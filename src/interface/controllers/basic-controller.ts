@@ -22,6 +22,11 @@ export class BasicController {
     private fileUseCase: FileUseCase,
   ) {}
 
+  @Get('test')
+  async test() {
+    return await this.walletUseCase.test();
+  }
+
   @Get()
   @Render('index')
   async getDailyProfitData() {

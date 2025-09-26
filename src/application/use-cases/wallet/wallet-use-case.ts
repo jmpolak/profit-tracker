@@ -18,6 +18,11 @@ export class WalletUseCase {
     private logger: LoggerPort,
   ) {}
 
+  async test() {
+    const test = await this.aaveRestClient.getMarkets();
+    return test;
+  }
+
   async removeWallet(walletAddress: string) {
     return await this.databaseRepository.walletDataBaseRepository.delete(
       walletAddress,

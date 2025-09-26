@@ -41,6 +41,15 @@ class TokenSupplied {
   @Prop({ type: [FileData] })
   fileData: FileData[];
 
+  // @Prop({type: Record<'Aave', {}>})
+  suppliedTest: {
+    site: 'Aave' | 'Jupyter';
+    supplied: TokenSupplied & { chainName: string; chainId: number }; // jupyter doesnt have chainId?
+  };
+  /* Aave: {
+    polygon: FileData
+  } */
+
   @Prop({ required: true })
   lastUpdate: Date;
 }

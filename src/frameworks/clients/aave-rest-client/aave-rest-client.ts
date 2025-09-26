@@ -7,18 +7,35 @@ import {
   UserTransactionItem,
 } from '@aave/client';
 // Move imports to the top and use correct paths
-
-import { userSupplies, userTransactionHistory } from '@aave/client/actions';
+import {
+  markets,
+  userSupplies,
+  userTransactionHistory,
+} from '@aave/client/actions';
 import { evmAddress } from '@aave/client';
 
 import { IAaveRestClientRepository } from 'src/core/abstract/aave-rest-client/aave-rest-client-repository';
 import { InternalServerErrorException } from '@nestjs/common';
 import { SuppliedPositions } from 'src/core/entity/transaction';
-
+import { AAVE_CHAINS } from '../../../../all-chains.js';
 export class AaveRestClient implements IAaveRestClientRepository {
   private client: AaveClient;
   constructor() {
     this.client = AaveClient.create();
+  }
+
+  public async getMarkets() {
+    const chainIds = AAVE_CHAINS.map((c) => chainId(c));
+    const data = await markets(this.client, {
+      chainIds,
+    });
+    if (data.isErr()) {
+      throw new InternalServerErrorException(
+        'Could not get market data',
+        data.error,
+      );
+    }
+    return this.getCurrentBalance('0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf');
   }
 
   public async getTransactions(
