@@ -24,17 +24,18 @@ export class ExcelFileService implements IExcelFileServicePort {
         if (Array.isArray(rowData[key])) rowData[key] = rowData[key].join(', ');
       });
       const row = worksheet.addRow(rowData);
-      if (row.number % 2 === 0) {
-        row.eachCell((cell) => {
-          cell.text.length >= 29 ? (cell.note = cell.text) : undefined;
-          cell.alignment = { wrapText: false };
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFD9D9D9' }, // Light grey
-          };
-        });
-      }
+      row.eachCell((cell) => {
+        cell.text.length >= 29 ? (cell.note = cell.text) : undefined;
+        cell.alignment = { wrapText: false };
+        row.number % 2 === 0
+          ? (() =>
+              (cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFD9D9D9' }, // Light grey
+              }))()
+          : undefined;
+      });
     });
 
     if (footer && Object.keys(footer ?? {}).length > 0) {
