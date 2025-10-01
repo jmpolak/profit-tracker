@@ -1,6 +1,9 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { IExcelFileServicePort } from 'src/core/abstract/excel-file-service/excel-file-service-port';
-import { FileData, Wallet } from 'src/frameworks/database/model/wallet.model';
+import {
+  HistoricalData,
+  Wallet,
+} from 'src/frameworks/database/model/wallet.model';
 import { TransactionsAnalyticUtils } from 'src/application/services/transactions/transactions-analytics-utils';
 import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 import { LoggerPort } from 'src/core/abstract/logger-port/logger-port';
@@ -16,20 +19,44 @@ export class FileUseCase {
 
   async generateExcelReport(
     wallet: string,
+    marketName: string,
+    poolAddress: string,
     token: string,
     filters?: { year?: string; month?: string },
   ): Promise<{ bufferFile: Buffer; fileName: string }> {
     await WalletValidator.walletValidForFileGeneration(wallet, this.db);
+
     try {
-      type ExcelData = Omit<FileData, 'createdByCreateWalletEvent'>;
+      type ExcelData = Omit<HistoricalData, 'createdByCreateWalletEvent'>;
+
       const dbWallet =
         await this.db.walletDataBaseRepository.findByAddress(wallet);
-      let tokenData: ExcelData[] =
-        dbWallet?.tokenSupplied
-          .find((t) => t.currency === token)
-          ?.fileData.map(({ createdByCreateWalletEvent, ...rest }) => rest) ??
-        [];
+      if (!dbWallet) {
+        throw new Error(`Wallet not found: ${wallet}`);
+      }
 
+      // Step 1: Find all matching tokens across all sites and chains
+      let tokenData: ExcelData[] = [];
+
+      for (const site of dbWallet.sitesSupplied ?? []) {
+        for (const chain of site.suppliedChains ?? []) {
+          for (const tkn of chain.tokens ?? []) {
+            if (
+              tkn.currency === token &&
+              poolAddress === chain.poolAddress && // @ToDO in on func. this is how we differentita chains by address and marketName
+              marketName === chain.marketName
+            ) {
+              const data =
+                tkn.historicalData?.map(
+                  ({ createdByCreateWalletEvent, ...rest }) => rest,
+                ) ?? [];
+              tokenData.push(...data);
+            }
+          }
+        }
+      }
+
+      // Step 2: Apply filters
       if (filters?.year) {
         tokenData = tokenData.filter((data) => {
           const txDate = new Date(data.date);
@@ -46,23 +73,29 @@ export class FileUseCase {
           );
         });
       }
-      interface FoterType {
+
+      // Step 3: Build footer
+      interface FooterType {
         totalProfit: string;
       }
-      const footer: FoterType = {
+
+      const footer: FooterType = {
         totalProfit: TransactionsAnalyticUtils.getOverallProfit(tokenData),
       };
+
       if (tokenData.length === 0) {
         throw new Error(
           `No data provided to generate the Excel file for wallet ${wallet} for currency ${token} with filter ${JSON.stringify(filters)}`,
         );
       }
+
+      // Step 4: Return the file
       return {
         bufferFile: await this.excelFileService.generateFile<
           ExcelData,
-          FoterType
+          FooterType
         >(tokenData, footer),
-        fileName: `${wallet}-${token}-${filters?.year ? filters.year + (filters?.month ? '-' + filters.month : '') : this.getTodayDate()}.xlsx`,
+        fileName: `${wallet}-${marketName}-${token}-${filters?.year ? filters.year + (filters?.month ? '-' + filters.month : '') : this.getTodayDate()}.xlsx`,
       };
     } catch (err) {
       this.logger.error(err?.message ?? 'Error generating file');

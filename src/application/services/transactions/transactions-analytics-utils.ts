@@ -1,14 +1,8 @@
-import { UserTransactionItem } from '@aave/client';
-import { TransactionType } from 'src/core/entity/transaction';
+import { TransactionType, UserTransaction } from 'src/core/entity/transaction';
 import { BigNumber } from 'bignumber.js';
-import { FileData } from 'src/frameworks/database/model/wallet.model';
+import { HistoricalData } from 'src/frameworks/database/model/wallet.model';
 export abstract class TransactionsAnalyticUtils {
-  // @ToDo UserTransactionItem -> this helper class is
-  // only compatible with aave
-  // if we want to also use jupyter or other site
-  // we should use own classes (transform aave/ jupyter responses to our classes)
-
-  static getOverallProfit(fileData: FileData[]) {
+  static getOverallProfit(fileData: HistoricalData[]) {
     const sumOfProfit = fileData.reduce((sum, i) => {
       return sum.plus(new BigNumber(i.dailyProfit));
     }, new BigNumber(0));
@@ -16,8 +10,10 @@ export abstract class TransactionsAnalyticUtils {
   }
 
   static filterTransactionsFromTodayAndByTokenSymbol(
-    transactions: UserTransactionItem[],
+    transactions: UserTransaction[],
     tokenSymbol: string,
+    poolAddress: string,
+    marketName: string,
   ) {
     const today = new Date();
     const todayYear = today.getFullYear();
@@ -30,7 +26,9 @@ export abstract class TransactionsAnalyticUtils {
         txDate.getFullYear() === todayYear &&
         txDate.getMonth() === todayMonth &&
         txDate.getDate() === todayDate &&
-        tx['reserve']?.aToken?.symbol === tokenSymbol
+        tx.tokenSymbol === tokenSymbol &&
+        tx.poolAddress === poolAddress &&
+        tx.marketName === marketName
       );
     });
   }
@@ -76,53 +74,53 @@ export abstract class TransactionsAnalyticUtils {
     };
   }
 
-  static getTransactionsBalance(transactions: UserTransactionItem[]) {
+  static getTransactionsBalance(transactions: UserTransaction[]) {
     const transactionsByType =
       TransactionsAnalyticUtils.groupByTransactionsType(transactions);
     const totalDeposits = transactionsByType[TransactionType.SUPPLY]
       ? transactionsByType[TransactionType.SUPPLY].reduce(
-          (sum, tx) => sum.plus(BigNumber(tx['amount'].amount.value)),
+          (sum, tx) => sum.plus(BigNumber(tx.value)),
           new BigNumber(0),
         )
       : new BigNumber(0);
     const totalWithdrawals = transactionsByType[TransactionType.WITHDRAW]
       ? transactionsByType[TransactionType.WITHDRAW].reduce(
-          (sum, tx) => sum.plus(BigNumber(tx['amount'].amount.value)),
+          (sum, tx) => sum.plus(BigNumber(tx.value)),
           new BigNumber(0),
         )
       : new BigNumber(0);
     return totalDeposits.minus(totalWithdrawals).toString();
   }
 
-  static getTransactionsBalanceInUsd(transactions: UserTransactionItem[]) {
+  static getTransactionsBalanceInUsd(transactions: UserTransaction[]) {
     const transactionsByType =
       TransactionsAnalyticUtils.groupByTransactionsType(transactions);
     const totalDeposits = transactionsByType[TransactionType.SUPPLY]
       ? transactionsByType[TransactionType.SUPPLY].reduce(
-          (sum, tx) => sum.plus(BigNumber(tx['amount'].usd)),
+          (sum, tx) => sum.plus(BigNumber(tx.usdValue)),
           new BigNumber(0),
         )
       : new BigNumber(0);
     const totalWithdrawals = transactionsByType[TransactionType.WITHDRAW]
       ? transactionsByType[TransactionType.WITHDRAW].reduce(
-          (sum, tx) => sum.plus(BigNumber(tx['amount'].usd)),
+          (sum, tx) => sum.plus(BigNumber(tx.usdValue)),
           new BigNumber(0),
         )
       : new BigNumber(0);
     return totalDeposits.minus(totalWithdrawals).toString();
   }
 
-  private static groupByTransactionsType(transactions: UserTransactionItem[]) {
+  private static groupByTransactionsType(transactions: UserTransaction[]) {
     return transactions.reduce(
       (acc, tx) => {
-        const type = tx.__typename;
+        const type = tx.type;
         if (!acc[type]) {
           acc[type] = [];
         }
         acc[type].push(tx);
         return acc;
       },
-      {} as Record<TransactionType, UserTransactionItem[]>,
+      {} as Record<TransactionType, UserTransaction[]>,
     );
   }
 }

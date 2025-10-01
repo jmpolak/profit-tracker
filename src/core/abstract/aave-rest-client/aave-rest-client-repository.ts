@@ -1,9 +1,18 @@
-import { UserTransactionItem } from '@aave/client';
-import { SuppliedPositions } from 'src/core/entity/transaction';
+import { SuppliedTokensBalance } from 'src/core/entity/supply';
+import { UserTransaction } from 'src/core/entity/transaction';
 
 export abstract class IAaveRestClientRepository {
-  // if we add suport for more sites like jupiter we would make this className<T> because UserTransactionItem is from aave
-  abstract getCurrentBalance(userAddress: string): Promise<SuppliedPositions>;
-  abstract getTransactions(userAddress: string): Promise<UserTransactionItem[]>;
+  readonly SITE_NAME: string;
+  abstract getCurrentBalance(
+    userAddress: string,
+  ): Promise<SuppliedTokensBalance[]>;
+  abstract getTransactions(
+    userAddress: string,
+    poolAddress: string,
+    chainId: number,
+  ): Promise<UserTransaction[]>;
+  abstract getTransactionsOnAllChains(
+    userAddress: string,
+  ): Promise<UserTransaction[]>;
   abstract getMarkets();
 }

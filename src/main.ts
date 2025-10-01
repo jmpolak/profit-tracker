@@ -15,6 +15,11 @@ async function bootstrap() {
   hbs.registerHelper('json', function (context) {
     return JSON.stringify(context);
   });
+  hbs.registerHelper('eq', (a, b) => a === b);
+  hbs.registerHelper(
+    'and',
+    (a, b, c, d) => a && b && (c ?? true) && (d ?? true),
+  );
   app.useGlobalFilters(app.get(UnhandledHttpExceptionsFilter));
   app.setBaseViewsDir(join(__dirname, 'views'));
   const PORT = process.env.PORT ?? 3000;

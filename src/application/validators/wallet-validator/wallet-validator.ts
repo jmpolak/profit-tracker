@@ -39,7 +39,7 @@ export class WalletValidator {
   }
 
   private static hasTokenSupplied(wallet: Wallet) {
-    return wallet?.tokenSupplied.length ?? 0 > 0;
+    return wallet?.sitesSupplied.length ?? 0 > 0;
   }
 
   private static async isInDatabase(

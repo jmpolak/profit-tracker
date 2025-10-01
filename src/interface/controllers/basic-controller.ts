@@ -39,16 +39,16 @@ export class BasicController {
     return await this.walletUseCase.createWallet(walletDto.address);
   }
 
-  // remove wallet?
-
   @Delete('remove-wallet/:walletaddress')
   async removeFile(@Param('walletaddress') walletAddress: string) {
     return await this.walletUseCase.removeWallet(walletAddress);
   }
 
-  @Get('get-file/:walletaddress/:token')
+  @Get('get-file/:walletaddress/:site/:marketName/:poolAddress/:token')
   async getDailyProfitCsv(
     @Param('walletaddress') walletAddress: string,
+    @Param('poolAddress') poolAddress: string,
+    @Param('marketName') marketName: string,
     @Param('token', UppercasePipe) token: string,
     @Res() res: Response,
     @Query('year') year?: string,
@@ -56,6 +56,8 @@ export class BasicController {
   ) {
     const { bufferFile, fileName } = await this.fileUseCase.generateExcelReport(
       walletAddress,
+      marketName,
+      poolAddress,
       token,
       { year, month },
     );

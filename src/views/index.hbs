@@ -209,31 +209,53 @@
           Remove
         </button>
       </div>
-      {{#if this.tokenSupplied}}
+
+      {{#if this.sitesSupplied}}
         <ul>
-          {{#each this.tokenSupplied}}
-            <li>
-              <strong>Currency:</strong> {{this.currency}}
-              <form method="GET" action="/get-file/{{../this.address}}/{{this.currency}}" class="download-form" data-filters="{{json ../this.filters}}">
-                <label>
-                  Year:
-                  <select name="year" class="year-select">
-                    <option value="">All</option>
-                    {{#each ../this.filters}}
-                      <option value="{{this.year}}">{{this.year}}</option>
-                    {{/each}}
-                  </select>
-                </label>
-                <label>
-                  Month:
-                  <select style="width: 120px;" name="month" class="month-select">
-                    <option value="">All</option>
-                    <!-- JS will populate -->
-                  </select>
-                </label>
-                <button type="submit">Download File</button>
-              </form>
-            </li>
+          {{#each this.sitesSupplied}}
+            {{#each this.suppliedChains}}
+              {{#each this.tokens}}
+                <li>
+                  <strong>Site:</strong> {{../../name}}<br />
+                  <strong>Chain:</strong> {{../chainName}}<br />
+                  <strong>Market:</strong> {{../marketName}}<br />
+                  <strong>Currency:</strong> {{this.currency}}
+
+                  {{#each ../../../filters as |filter|}}
+                  
+                    {{#if (and (eq filter.site ../../../name) (eq filter.chain ../../chainName) (eq filter.token ../currency) (eq filter.marketName ../../marketName) )}}
+                    
+                      <form 
+                        method="GET" 
+                        action="/get-file/{{../../../../address}}/{{filter.site}}/{{filter.marketName}}/{{../../poolAddress}}/{{filter.token}}" 
+                        class="download-form" 
+                        data-filters="{{json filter.filters}}"
+                      >
+                        <label>
+                          Year:
+                          <select name="year" class="year-select">
+                            <option value="">All</option>
+                            {{#each filter.filters}}
+                              <option value="{{this.year}}">{{this.year}}</option>
+                            {{/each}}
+                          </select>
+                        </label>
+                        <label>
+                          Month:
+                          <select style="width: 120px;" name="month" class="month-select">
+                            <option value="">All</option>
+                            <!-- JS will populate -->
+                          </select>
+                        </label>
+                        <button type="submit">Download File</button>
+                      </form>
+                    {{/if}}
+                  {{/each}}
+
+                </li>
+
+              {{/each}}
+            {{/each}}
           {{/each}}
         </ul>
       {{else}}
@@ -255,11 +277,22 @@
     </form>
   </div>
 
-  <script>
 
-    document.querySelectorAll('.download-form').forEach((form) => {
+<script>
+  document.querySelectorAll('.download-form').forEach((form) => {
+    let filters = [];
 
-    const filters = JSON.parse(form.dataset.filters || '[]');
+    try {
+      const filtersJson = form.dataset.filters || '[]';
+      const parsed = JSON.parse(filtersJson);
+
+      if (Array.isArray(parsed)) {
+        filters = parsed;
+      }
+    } catch (err) {
+      console.error('Invalid filters JSON for form:', form, err);
+    }
+
     const yearSelect = form.querySelector('.year-select');
     const monthSelect = form.querySelector('.month-select');
 
@@ -272,7 +305,10 @@
 
       yearFilter.months.forEach(monthNum => {
         const month = monthNum.toString().padStart(2, '0');
-        const monthName = new Date(2000, monthNum - 1).toLocaleString('default', { month: 'long' });
+        const monthName = new Date(2000, monthNum - 1).toLocaleString('default', {
+          month: 'long'
+        });
+
         const option = document.createElement('option');
         option.value = month;
         option.textContent = monthName;
@@ -280,62 +316,17 @@
       });
     }
 
+    if (yearSelect.value) {
+      populateMonths(yearSelect.value);
+    }
+
     yearSelect.addEventListener('change', (e) => {
       populateMonths(e.target.value);
     });
-
-    // Populate on load if a year is preselected
-    populateMonths(yearSelect.value);
   });
+</script>
 
 
-    document.getElementById('add-wallet-form').addEventListener('submit', async function (e) {
-      e.preventDefault();
 
-      const address = document.getElementById('address').value;
-
-      const response = await fetch('/add-wallet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ address }),
-      });
-
-      if (response.ok) {
-        alert('Wallet added');
-        window.location.reload();
-      } else {
-        const data = await response.json().catch(() => ({}));
-        alert(data.message || 'Failed to add wallet');
-      }
-    });
-    document.querySelectorAll('.remove-wallet-btn').forEach(button => {
-  button.addEventListener('click', async (e) => {
-    const walletAddress = e.target.getAttribute('data-address');
-    if (!walletAddress) return;
-
-    if (!confirm(`Are you sure you want to remove wallet ${walletAddress}?`)) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/remove-wallet/${walletAddress}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        alert(`Wallet ${walletAddress} removed`);
-        window.location.reload();
-      } else {
-        const data = await response.json().catch(() => ({}));
-        alert(data.message || 'Failed to remove wallet');
-      }
-    } catch (error) {
-      alert('Network error while trying to remove wallet');
-    }
-  });
-});
-  </script>
 </body>
 </html>

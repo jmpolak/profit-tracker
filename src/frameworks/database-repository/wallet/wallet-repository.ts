@@ -35,7 +35,7 @@ export class WalletDataBaseRepository implements IWalletDatabaseRepository {
     return wallet;
   }
 
-  async getAllRecentUpdatedTokenSuppliedByWalletAddress(
+  async getAllRecentUpdatedTokenSuppliedByWalletAddressWithBalance(
     walletAddress: string,
   ): Promise<Wallet | null> {
     const today = new Date();
@@ -43,12 +43,13 @@ export class WalletDataBaseRepository implements IWalletDatabaseRepository {
     yesterday.setDate(yesterday.getDate() - 1);
 
     const wallet: Wallet | null = await this.mongoClient.findOne({
-      tokenSupplied: {
+      address: walletAddress,
+      'sitesSupplied.suppliedChains.tokens': {
         $elemMatch: {
           lastUpdate: { $gte: new Date(yesterday.setHours(0, 0, 0, 0)) },
+          currentBalance: { $ne: '0' },
         },
       },
-      address: walletAddress,
     });
     return wallet ?? null;
   }
