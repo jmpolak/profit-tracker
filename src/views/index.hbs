@@ -279,6 +279,54 @@
 
 
 <script>
+  document.getElementById('add-wallet-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const address = document.getElementById('address').value;
+
+      const response = await fetch('/add-wallet', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ address }),
+      });
+
+      if (response.ok) {
+        alert('Wallet added');
+        window.location.reload();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        alert(data.message || 'Failed to add wallet');
+      }
+    });
+    document.querySelectorAll('.remove-wallet-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const walletAddress = e.target.getAttribute('data-address');
+    if (!walletAddress) return;
+
+    if (!confirm(`Are you sure you want to remove wallet ${walletAddress}?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/remove-wallet/${walletAddress}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert(`Wallet ${walletAddress} removed`);
+        window.location.reload();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        alert(data.message || 'Failed to remove wallet');
+      }
+    } catch (error) {
+      alert('Network error while trying to remove wallet');
+    }
+  });
+});
+
   document.querySelectorAll('.download-form').forEach((form) => {
     let filters = [];
 
