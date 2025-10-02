@@ -8,6 +8,7 @@ import { TransactionsAnalyticUtils } from 'src/application/services/transactions
 import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 import { LoggerPort } from 'src/core/abstract/logger-port/logger-port';
 import { IDataBaseRepository } from 'src/core/abstract/database-repository.ts/database-repository';
+import { WalletTokenSupplied } from 'src/application/services/wallet/token-supplied';
 
 @Injectable()
 export class FileUseCase {
@@ -38,23 +39,16 @@ export class FileUseCase {
       // Step 1: Find all matching tokens across all sites and chains
       let tokenData: ExcelData[] = [];
 
-      for (const site of dbWallet.sitesSupplied ?? []) {
-        for (const chain of site.suppliedChains ?? []) {
-          for (const tkn of chain.tokens ?? []) {
-            if (
-              tkn.currency === token &&
-              poolAddress === chain.poolAddress && // @ToDO in on func. this is how we differentita chains by address and marketName
-              marketName === chain.marketName
-            ) {
-              const data =
-                tkn.historicalData?.map(
-                  ({ createdByCreateWalletEvent, ...rest }) => rest,
-                ) ?? [];
-              tokenData.push(...data);
-            }
-          }
-        }
-      }
+      const suppliedToken = WalletTokenSupplied.getTokenSuppliedTokenFromWallet(
+        dbWallet,
+        { marketName, poolAddress },
+        token,
+      );
+      const data =
+        suppliedToken?.historicalData.map(
+          ({ createdByCreateWalletEvent, ...rest }) => rest,
+        ) ?? [];
+      tokenData.push(...data);
 
       // Step 2: Apply filters
       if (filters?.year) {

@@ -14,7 +14,7 @@ export class WalletDataBaseRepository implements IWalletDatabaseRepository {
   async createOrUpdate(wallet: Wallet): Promise<Wallet> {
     return await this.mongoClient.findOneAndUpdate(
       { address: wallet.address },
-      wallet,
+      { $set: wallet },
       { upsert: true, new: true },
     );
   }

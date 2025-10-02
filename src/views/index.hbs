@@ -46,13 +46,6 @@
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
     }
 
-    .wallet-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
     .wallet h2 {
       font-size: 1.1rem;
       color: #444;
@@ -138,7 +131,7 @@
       border-radius: var(--border-radius);
       box-shadow: var(--shadow);
       max-width: 500px;
-      margin-top: 2rem;
+      margin: 2rem auto; /* <-- Centers it horizontally */
     }
 
     .add-wallet-container h2 {
@@ -195,6 +188,29 @@
         gap: 0.5rem;
       }
     }
+    .toggle-wallet-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      transition: transform 0.2s ease;
+      transform: rotate(0deg);
+    }
+
+    .toggle-wallet-btn.open {
+      transform: rotate(90deg);
+    }
+
+    .wallet-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .wallet-body {
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -204,63 +220,65 @@
   {{#each wallets}}
     <div class="wallet">
       <div class="wallet-header">
+        <button class="toggle-wallet-btn" aria-label="Toggle wallet details">▶</button>
         <h2>Wallet Address: {{this.address}}</h2>
         <button class="remove-wallet-btn" data-address="{{this.address}}">
           Remove
         </button>
       </div>
+      <div class="wallet-body" style="display: none;">
+        {{#if this.sitesSupplied}}
+          <ul>
+            {{#each this.sitesSupplied}}
+              {{#each this.suppliedChains}}
+                {{#each this.tokens}}
+                  <li>
+                    <strong>Site:</strong> {{../../name}}<br />
+                    <strong>Chain:</strong> {{../chainName}}<br />
+                    <strong>Market:</strong> {{../marketName}}<br />
+                    <strong>Currency:</strong> {{this.currency}}
 
-      {{#if this.sitesSupplied}}
-        <ul>
-          {{#each this.sitesSupplied}}
-            {{#each this.suppliedChains}}
-              {{#each this.tokens}}
-                <li>
-                  <strong>Site:</strong> {{../../name}}<br />
-                  <strong>Chain:</strong> {{../chainName}}<br />
-                  <strong>Market:</strong> {{../marketName}}<br />
-                  <strong>Currency:</strong> {{this.currency}}
-
-                  {{#each ../../../filters as |filter|}}
-                  
-                    {{#if (and (eq filter.site ../../../name) (eq filter.chain ../../chainName) (eq filter.token ../currency) (eq filter.marketName ../../marketName) )}}
+                    {{#each ../../../filters as |filter|}}
                     
-                      <form 
-                        method="GET" 
-                        action="/get-file/{{../../../../address}}/{{filter.site}}/{{filter.marketName}}/{{../../poolAddress}}/{{filter.token}}" 
-                        class="download-form" 
-                        data-filters="{{json filter.filters}}"
-                      >
-                        <label>
-                          Year:
-                          <select name="year" class="year-select">
-                            <option value="">All</option>
-                            {{#each filter.filters}}
-                              <option value="{{this.year}}">{{this.year}}</option>
-                            {{/each}}
-                          </select>
-                        </label>
-                        <label>
-                          Month:
-                          <select style="width: 120px;" name="month" class="month-select">
-                            <option value="">All</option>
-                            <!-- JS will populate -->
-                          </select>
-                        </label>
-                        <button type="submit">Download File</button>
-                      </form>
-                    {{/if}}
-                  {{/each}}
+                      {{#if (and (eq filter.site ../../../name) (eq filter.chain ../../chainName) (eq filter.token ../currency) (eq filter.marketName ../../marketName) )}}
+                      
+                        <form 
+                          method="GET" 
+                          action="/get-file/{{../../../../address}}/{{filter.site}}/{{filter.marketName}}/{{../../poolAddress}}/{{filter.token}}" 
+                          class="download-form" 
+                          data-filters="{{json filter.filters}}"
+                        >
+                          <label>
+                            Year:
+                            <select name="year" class="year-select">
+                              <option value="">All</option>
+                              {{#each filter.filters}}
+                                <option value="{{this.year}}">{{this.year}}</option>
+                              {{/each}}
+                            </select>
+                          </label>
+                          <label>
+                            Month:
+                            <select style="width: 120px;" name="month" class="month-select">
+                              <option value="">All</option>
+                              <!-- JS will populate -->
+                            </select>
+                          </label>
+                          <button type="submit">Download File</button>
+                        </form>
+                      {{/if}}
+                    {{/each}}
 
-                </li>
+                  </li>
 
+                {{/each}}
               {{/each}}
             {{/each}}
-          {{/each}}
-        </ul>
-      {{else}}
-        <p class="no-tokens">No tokens supplied.</p>
-      {{/if}}
+          </ul>
+        {{else}}
+          <p class="no-tokens">No tokens supplied.</p>
+        {{/if}}
+      </div>
     </div>
   {{/each}}
 
@@ -371,6 +389,29 @@
     yearSelect.addEventListener('change', (e) => {
       populateMonths(e.target.value);
     });
+  });
+
+  document.querySelectorAll('.wallet').forEach(walletEl => {
+    const toggleBtn = walletEl.querySelector('.toggle-wallet-btn');
+    const walletBody = walletEl.querySelector('.wallet-body');
+
+    if (toggleBtn && walletBody) {
+      // Initial state: show content and arrow pointing down (open)
+      //walletBody.style.display = 'block';
+      //toggleBtn.classList.add('open');
+      //toggleBtn.textContent = '▼';
+
+      toggleBtn.addEventListener('click', () => {
+        const isOpen = toggleBtn.classList.contains('open');
+        if (isOpen) {
+          walletBody.style.display = 'none';
+          toggleBtn.classList.remove('open');
+        } else {
+          walletBody.style.display = 'block';
+          toggleBtn.classList.add('open');
+        }
+      });
+    }
   });
 </script>
 

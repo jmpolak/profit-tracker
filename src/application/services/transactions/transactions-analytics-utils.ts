@@ -26,9 +26,9 @@ export abstract class TransactionsAnalyticUtils {
         txDate.getFullYear() === todayYear &&
         txDate.getMonth() === todayMonth &&
         txDate.getDate() === todayDate &&
-        tx.tokenSymbol === tokenSymbol &&
-        tx.poolAddress === poolAddress &&
-        tx.marketName === marketName
+        tx.tokenSymbol.equalsIgnore(tokenSymbol) &&
+        tx.poolAddress.equalsIgnore(poolAddress) &&
+        tx.marketName.equalsIgnore(marketName)
       );
     });
   }

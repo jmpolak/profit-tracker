@@ -5,6 +5,16 @@ import { join } from 'path';
 import * as crypto from 'crypto';
 import { UnhandledHttpExceptionsFilter } from './interface/exception-filters/unhandled-http-exceptions-filter';
 
+declare global {
+  interface String {
+    equalsIgnore(str: string): boolean;
+  }
+}
+
+String.prototype.equalsIgnore = function (str: string): boolean {
+  return this.toLowerCase() === str.toLowerCase();
+};
+
 const hbs = require('hbs');
 if (!(global as any).crypto) {
   (global as any).crypto = crypto;
