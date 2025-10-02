@@ -205,9 +205,16 @@
     .wallet-header {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 1rem;
     }
 
+    .wallet-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
     .wallet-body {
       margin-top: 1rem;
     }
@@ -220,8 +227,10 @@
   {{#each wallets}}
     <div class="wallet">
       <div class="wallet-header">
-        <button class="toggle-wallet-btn" aria-label="Toggle wallet details">▶</button>
-        <h2>Wallet Address: {{this.address}}</h2>
+        <div class="wallet-title">
+          <button class="toggle-wallet-btn" aria-label="Toggle wallet details">▶</button>
+          <h2>Wallet Address: {{this.address}}</h2>
+        </div>
         <button class="remove-wallet-btn" data-address="{{this.address}}">
           Remove
         </button>
