@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { IExcelFileServicePort } from 'src/core/abstract/excel-file-service/excel-file-service-port';
 import {
   HistoricalData,
@@ -25,9 +25,8 @@ export class FileUseCase {
     token: string,
     filters?: { year?: string; month?: string },
   ): Promise<{ bufferFile: Buffer; fileName: string }> {
-    await WalletValidator.walletValidForFileGeneration(wallet, this.db);
-
     try {
+      await WalletValidator.walletValidForFileGeneration(wallet, this.db);
       type ExcelData = Omit<HistoricalData, 'createdByCreateWalletEvent'>;
 
       const dbWallet =
@@ -93,9 +92,7 @@ export class FileUseCase {
       };
     } catch (err) {
       this.logger.error(err?.message ?? 'Error generating file');
-      throw new InternalServerErrorException(
-        err?.message ?? 'Error generating file',
-      );
+      throw new BadRequestException(err?.message ?? 'Error generating file');
     }
   }
 

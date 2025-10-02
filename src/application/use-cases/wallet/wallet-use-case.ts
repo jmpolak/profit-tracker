@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { IAaveRestClientRepository } from 'src/core/abstract/aave-rest-client/aave-rest-client-repository';
 import { SuppliedTokensBalance } from 'src/core/entity/supply';
 import {
@@ -38,8 +42,8 @@ export class WalletUseCase {
   }
 
   async createWallet(walletAddress: string) {
-    await WalletValidator.assertValid(walletAddress, this.databaseRepository);
     try {
+      await WalletValidator.assertValid(walletAddress, this.databaseRepository);
       await this.databaseRepository.walletDataBaseRepository.createOrUpdate({
         address: walletAddress,
         sitesSupplied: [],
@@ -50,7 +54,7 @@ export class WalletUseCase {
       this.logger.error(
         err?.message ?? `Error in creating wallet for ${walletAddress}`,
       );
-      throw new InternalServerErrorException(
+      throw new BadRequestException(
         err?.message ?? `Error in creating wallet for ${walletAddress}`,
       );
     }
@@ -69,7 +73,7 @@ export class WalletUseCase {
       return await this.databaseRepository.walletDataBaseRepository.findAll();
     } catch (err) {
       this.logger.error(err?.message ?? `Error getting all wallets`);
-      throw new InternalServerErrorException(
+      throw new BadRequestException(
         err?.message ?? `Error getting all wallets`,
       );
     }
@@ -86,7 +90,9 @@ export class WalletUseCase {
       );
     } catch (err) {
       this.logger.error(err?.message ?? `Error updating all wallets`);
-      throw new Error(err?.message ?? `Error updating all wallets`);
+      throw new BadRequestException(
+        err?.message ?? `Error updating all wallets`,
+      );
     }
   }
 
@@ -99,7 +105,9 @@ export class WalletUseCase {
       return wallet;
     } catch (err) {
       this.logger.error(err?.message ?? `Error getting wallet: ${userAddress}`);
-      throw new Error(err?.message ?? `Error getting wallet: ${userAddress}`);
+      throw new BadRequestException(
+        err?.message ?? `Error getting wallet: ${userAddress}`,
+      );
     }
   }
 

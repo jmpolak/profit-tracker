@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { IDataBaseRepository } from 'src/core/abstract/database-repository.ts/database-repository';
 
 import { Wallet } from 'src/frameworks/database/model/wallet.model';
@@ -9,10 +8,10 @@ export class WalletValidator {
     databaseRepository: IDataBaseRepository,
   ): Promise<void> {
     if (!this.isValid(address)) {
-      throw new BadRequestException(`Invalid wallet address: ${address}`);
+      throw new Error(`Invalid wallet address: ${address}`);
     }
     if (await this.isInDatabase(address, databaseRepository)) {
-      throw new BadRequestException(`Wallet ${address} already exists`);
+      throw new Error(`Wallet ${address} already exists`);
     }
   }
 
@@ -25,12 +24,10 @@ export class WalletValidator {
       databaseRepository,
     );
     if (!wallet) {
-      throw new BadRequestException(`Wallet ${address} do not exists`);
+      throw new Error(`Wallet ${address} do not exists`);
     }
     if (!WalletValidator.hasTokenSupplied(wallet)) {
-      throw new BadRequestException(
-        `Wallet ${wallet.address} do not have token supplied`,
-      );
+      throw new Error(`Wallet ${wallet.address} do not have token supplied`);
     }
   }
 

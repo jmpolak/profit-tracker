@@ -51,14 +51,14 @@ export class CustomLoggerService implements LoggerPort {
   warn(message: string, context?: string): void {
     this.mkDirIfNotExists();
     const formatted = this.format('WARN', message, context);
-    console.warn(formatted);
+    console.warn('\x1b[33m%s\x1b[0m', formatted);
     this.writeToFile(this.combinedLogPath, formatted);
   }
 
   error(message: string, trace?: string, context?: string): void {
     this.mkDirIfNotExists();
     const formatted = this.format('ERROR', message, context, trace);
-    console.error(formatted);
+    console.error('\x1b[31m%s\x1b[0m', formatted);
     this.writeToFile(this.errorLogPath, formatted);
     this.writeToFile(this.combinedLogPath, formatted);
   }
