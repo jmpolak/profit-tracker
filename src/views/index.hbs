@@ -126,6 +126,7 @@
     }
 
     .add-wallet-container {
+      text-align: center;
       background-color: var(--card-bg);
       padding: 2rem;
       border-radius: var(--border-radius);
@@ -135,7 +136,8 @@
     }
 
     .add-wallet-container h2 {
-      margin-bottom: 1.5rem;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
       font-size: 1.4rem;
       color: #333;
     }
@@ -218,6 +220,27 @@
     .wallet-body {
       margin-top: 1rem;
     }
+
+    .token-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 1rem;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      justify-items: stretch;
+    }
+
+    .token-item {
+      background-color: #fafafa;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -237,16 +260,20 @@
       </div>
       <div class="wallet-body" style="display: none;">
         {{#if this.sitesSupplied}}
-          <ul>
+          <ul class="token-list">
             {{#each this.sitesSupplied}}
               {{#each this.suppliedChains}}
                 {{#each this.tokens}}
-                  <li>
+                  <li class="token-item">
                     <strong>Site:</strong> {{../../name}}<br />
                     <strong>Chain:</strong> {{../chainName}}<br />
                     <strong>Market:</strong> {{../marketName}}<br />
-                    <strong>Currency:</strong> {{this.currency}}
-
+                    <strong>Currency:</strong> {{this.currency}}<br />
+                    <strong>Current Balance ~({{this.currency}}/ USD):</strong> 
+                    <span class="nowrap">{{toFixed this.currentBalance}} / {{toFixed this.currentBalanceInUsd}}</span>
+                    <small style="font-size: 0.6em; color: #666; margin-left: 0.3em;">
+                    ({{formatDate this.lastUpdate}})
+                  </small>
                     {{#each ../../../filters as |filter|}}
                     
                       {{#if (and (eq filter.site ../../../name) (eq filter.chain ../../chainName) (eq filter.token ../currency) (eq filter.marketName ../../marketName) )}}
@@ -405,11 +432,6 @@
     const walletBody = walletEl.querySelector('.wallet-body');
 
     if (toggleBtn && walletBody) {
-      // Initial state: show content and arrow pointing down (open)
-      //walletBody.style.display = 'block';
-      //toggleBtn.classList.add('open');
-      //toggleBtn.textContent = '▼';
-
       toggleBtn.addEventListener('click', () => {
         const isOpen = toggleBtn.classList.contains('open');
         if (isOpen) {

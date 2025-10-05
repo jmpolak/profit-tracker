@@ -22,6 +22,29 @@ if (!(global as any).crypto) {
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.setViewEngine('hbs');
+
+  hbs.registerHelper('formatDate', function (date) {
+    if (!date) return '';
+
+    const d = new Date(date);
+    // if (isNaN(d)) return '';
+
+    const pad = (n) => n.toString().padStart(2, '0');
+
+    const day = pad(d.getDate());
+    const month = pad(d.getMonth() + 1); // months are 0-indexed
+    const year = d.getFullYear();
+
+    const hours = d.getHours();
+    const minutes = d.getMinutes();
+
+    return `${day}-${month}-${year} ${hours}:${pad(minutes)}`;
+  });
+  hbs.registerHelper('toFixed', function (number) {
+    const parsed = parseFloat(number);
+    if (isNaN(parsed)) return number;
+    return parsed.toFixed(4);
+  });
   hbs.registerHelper('json', function (context) {
     return JSON.stringify(context);
   });
