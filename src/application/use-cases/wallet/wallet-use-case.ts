@@ -133,7 +133,8 @@ export class WalletUseCase {
                 !currentSuppliedPositions.find(
                   (csp) =>
                     csp.market.poolAddress.equalsIgnore(chain.poolAddress) &&
-                    csp.market.marketName.equalsIgnore(chain.marketName),
+                    csp.market.marketName.equalsIgnore(chain.marketName) &&
+                    csp.tokenSymbol.equalsIgnore(token.currency),
                 )
               ) {
                 currentSuppliedPositions.push({
