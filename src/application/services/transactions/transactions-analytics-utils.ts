@@ -35,9 +35,16 @@ export abstract class TransactionsAnalyticUtils {
 
   static getDailyProfit(
     balanceToday: string,
-    lastBalance: string,
+    lastBalance: string | undefined,
     netDepositsWithdrawals: string,
+    onWalletCreation: boolean = false,
   ) {
+    if (onWalletCreation || lastBalance === undefined) {
+      return {
+        dailyProfit: '0',
+        dailyProfitInPercentage: '0%',
+      };
+    }
     const balanceTodayBN = new BigNumber(balanceToday);
     const lastBalanceBN = new BigNumber(lastBalance);
     const netDepositsWithdrawalsBN = new BigNumber(netDepositsWithdrawals);

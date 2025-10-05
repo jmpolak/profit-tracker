@@ -254,9 +254,10 @@ export class WalletUseCase {
         );
         const { dailyProfitInPercentage, dailyProfit } =
           TransactionsAnalyticUtils.getDailyProfit(
-            currentSuppliedPosition?.balance ?? '0',
-            tokenSupplied?.currentBalance ?? '0',
+            currentSuppliedPosition.balance,
+            tokenSupplied?.currentBalance,
             currentDayTransactionBalanceByToken,
+            onWalletCreation,
           );
         const dateForInsert = new Date();
         // const dateForInsert = new Date(
