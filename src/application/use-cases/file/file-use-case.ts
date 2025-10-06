@@ -9,6 +9,7 @@ import { WalletValidator } from 'src/application/validators/wallet-validator/wal
 import { LoggerPort } from 'src/core/abstract/logger-port/logger-port';
 import { IDataBaseRepository } from 'src/core/abstract/database-repository.ts/database-repository';
 import { WalletTokenSupplied } from 'src/application/services/wallet/token-supplied';
+import { DateUtil } from 'src/shared/utils/date';
 
 @Injectable()
 export class FileUseCase {
@@ -67,22 +68,22 @@ export class FileUseCase {
         });
       }
 
-      interface FooterType {
-        totalProfit: string;
-      }
+      type DateString = string & { __format: 'DD-MM-YYYY' };
       interface HeaderType {
         walletAddress: string;
         marketName: string;
         token: string;
+        totalProfit: string;
+        from: `${DateString}`;
+        to: `${DateString}`;
       }
 
       const header: HeaderType = {
         walletAddress: wallet,
         marketName,
         token,
-      };
-
-      const footer: FooterType = {
+        from: `${DateUtil.convertDateToString(data.at(0)!.date) as DateString}`,
+        to: `${DateUtil.convertDateToString(data.at(-1)!.date) as DateString}`,
         totalProfit: TransactionsAnalyticUtils.getOverallProfit(tokenData),
       };
 
@@ -96,22 +97,13 @@ export class FileUseCase {
       return {
         bufferFile: await this.excelFileService.generateFile<
           ExcelData,
-          HeaderType,
-          FooterType
-        >(tokenData, header, footer),
-        fileName: `${wallet}-${marketName}-${token}-${filters?.year ? filters.year + (filters?.month ? '-' + filters.month : '') : this.getTodayDate()}.xlsx`,
+          HeaderType
+        >(tokenData, header),
+        fileName: `${wallet}-${marketName}-${token}-${filters?.year ? filters.year + (filters?.month ? '-' + filters.month : '') : DateUtil.getTodayDate()}.xlsx`,
       };
     } catch (err) {
       this.logger.error(err?.message ?? 'Error generating file');
       throw new BadRequestException(err?.message ?? 'Error generating file');
     }
-  }
-
-  private getTodayDate(): string {
-    const date = new Date();
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0'); // January is 0
-    const yyyy = date.getFullYear();
-    return `${dd}-${mm}-${yyyy}`;
   }
 }
