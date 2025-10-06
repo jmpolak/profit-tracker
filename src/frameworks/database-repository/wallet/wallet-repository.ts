@@ -35,7 +35,7 @@ export class WalletDataBaseRepository implements IWalletDatabaseRepository {
     return wallet;
   }
 
-  async getAllRecentUpdatedTokenSuppliedByWalletAddressWithBalance(
+  async getAllRecentUpdatedTokenSuppliedByWalletAddress(
     walletAddress: string,
   ): Promise<Wallet | null> {
     const today = new Date();
@@ -47,7 +47,6 @@ export class WalletDataBaseRepository implements IWalletDatabaseRepository {
       'sitesSupplied.suppliedChains.tokens': {
         $elemMatch: {
           lastUpdate: { $gte: new Date(yesterday.setHours(0, 0, 0, 0)) },
-          currentBalance: { $ne: '0' },
         },
       },
     });

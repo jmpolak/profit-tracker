@@ -2,8 +2,15 @@ import {
   SuppliedToken,
   Wallet,
 } from 'src/frameworks/database/model/wallet.model';
+import { BigNumber } from 'bignumber.js';
 
 export abstract class WalletTokenSupplied {
+  static hasSuppliedTokenBalance(tokenSupplied: SuppliedToken) {
+    return BigNumber(tokenSupplied.currentBalance).isGreaterThan(
+      new BigNumber(0),
+    );
+  }
+
   static getTokenSuppliedTokenFromWallet(
     wallet: Wallet,
     market: {

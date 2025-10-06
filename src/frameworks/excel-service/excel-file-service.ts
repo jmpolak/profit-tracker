@@ -4,19 +4,33 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ExcelFileService implements IExcelFileServicePort {
-  async generateFile<T, S>(data: T[], footer?: S): Promise<Buffer> {
+  async generateFile<T, H, S>(
+    data: T[],
+    header?: H,
+    footer?: S,
+  ): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Report');
     const keys = Object.keys(data.at(0) ?? {});
     if (keys.length === 0) {
       throw new Error('Data objects have no keys.');
     }
+
+    if (header && Object.keys(header ?? {}).length > 0) {
+      Object.entries(header ?? {}).forEach((val, index) => {
+        worksheet.addRow([val.join(' : ')]);
+      });
+      worksheet.addRow([]);
+    }
+
     worksheet.columns = keys.map((key) => ({
-      header: key.charAt(0).toUpperCase() + key.slice(1),
       key,
       width: 30,
     }));
-
+    const headerRow = worksheet.addRow(
+      keys.map((key) => key.charAt(0).toUpperCase() + key.slice(1)),
+    );
+    // headerRow.font = { bold: true };
     data.forEach((rowData, index) => {
       Object.keys(rowData ?? {}).forEach((key) => {
         if (rowData[key] instanceof Date)

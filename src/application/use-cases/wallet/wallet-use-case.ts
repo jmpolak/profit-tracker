@@ -119,7 +119,7 @@ export class WalletUseCase {
 
       // Fetch wallet with nested tokens from DB with recent update and currentBalance !== '0'
       const walletWithRecentUpdatedTokenSupplies =
-        await this.databaseRepository.walletDataBaseRepository.getAllRecentUpdatedTokenSuppliedByWalletAddressWithBalance(
+        await this.databaseRepository.walletDataBaseRepository.getAllRecentUpdatedTokenSuppliedByWalletAddress(
           userAddress,
         );
 
@@ -130,6 +130,7 @@ export class WalletUseCase {
             for (const token of chain.tokens ?? []) {
               // If token currency is missing from currentSuppliedPositions, add zero balances
               if (
+                WalletTokenSupplied.hasSuppliedTokenBalance(token) &&
                 !currentSuppliedPositions.find(
                   (csp) =>
                     csp.market.poolAddress.equalsIgnore(chain.poolAddress) &&

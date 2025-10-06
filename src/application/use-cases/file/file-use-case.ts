@@ -67,10 +67,20 @@ export class FileUseCase {
         });
       }
 
-      // Step 3: Build footer
       interface FooterType {
         totalProfit: string;
       }
+      interface HeaderType {
+        walletAddress: string;
+        marketName: string;
+        token: string;
+      }
+
+      const header: HeaderType = {
+        walletAddress: wallet,
+        marketName,
+        token,
+      };
 
       const footer: FooterType = {
         totalProfit: TransactionsAnalyticUtils.getOverallProfit(tokenData),
@@ -86,8 +96,9 @@ export class FileUseCase {
       return {
         bufferFile: await this.excelFileService.generateFile<
           ExcelData,
+          HeaderType,
           FooterType
-        >(tokenData, footer),
+        >(tokenData, header, footer),
         fileName: `${wallet}-${marketName}-${token}-${filters?.year ? filters.year + (filters?.month ? '-' + filters.month : '') : this.getTodayDate()}.xlsx`,
       };
     } catch (err) {
