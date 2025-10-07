@@ -82,8 +82,8 @@ export class FileUseCase {
         walletAddress: wallet,
         marketName,
         token,
-        from: `${DateUtil.convertDateToString(data.at(0)!.date) as DateString}`,
-        to: `${DateUtil.convertDateToString(data.at(-1)!.date) as DateString}`,
+        from: `${DateUtil.convertDateToString(data.at(-1)!.date) as DateString}`,
+        to: `${DateUtil.convertDateToString(data.at(0)!.date) as DateString}`,
         totalProfit: TransactionsAnalyticUtils.getOverallProfit(tokenData),
       };
 
