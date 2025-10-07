@@ -11,11 +11,11 @@ MODE=$1
 
 if [ "$MODE" == "dev" ]; then
   echo -e "Starting in development mode..."
-  sudo docker compose -f docker-env/docker-compose.dev.yml up --build
+  sudo docker compose --env-file docker-env/docker.env -f docker-env/docker-compose.dev.yml up --build
 
 elif [ "$MODE" == "prod" ]; then
   echo -e "Starting in production mode..."
-  sudo docker compose -f docker-env/docker-compose.prod.yml up --build
+  sudo docker compose --env-file docker-env/docker.env -f docker-env/docker-compose.prod.yml up --build
 
 elif [ "$MODE" == "down" ]; then
   echo -e "Stopping and removing all dev and prod containers..."

@@ -3,7 +3,7 @@ version: '1.0'
 services:
   mongo:
     container_name: mongo
-    image: mongo
+    image: mongo:${MONGO_VERSION}
     ports:
       - '27017:27017'
     volumes:
@@ -14,6 +14,8 @@ services:
     build:
       context: ..
       dockerfile: docker-env/Dockerfile.dev
+      args:
+        NODE_VERSION: ${NODE_VERSION}
     volumes:
       - ..:/app
       - /app/node_modules # Prevent overwriting node_modules

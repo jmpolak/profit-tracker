@@ -1,6 +1,7 @@
 # Dockerfile.dev
 
-FROM node:18
+ARG NODE_VERSION
+FROM node:${NODE_VERSION}
 
 # Set timezone
 ENV TZ=Europe/Berlin

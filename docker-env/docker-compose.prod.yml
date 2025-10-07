@@ -3,7 +3,7 @@ version: '1.0'
 services:
   mongo:
     container_name: mongo
-    image: mongo
+    image: mongo:${MONGO_VERSION}
     ports:
       - '27017:27017'
     volumes:
@@ -16,6 +16,8 @@ services:
     build:
       context: ..
       dockerfile: docker-env/Dockerfile.prod
+      args:
+        NODE_VERSION: ${NODE_VERSION}
     ports:
       - '8080:3000'
     environment:
