@@ -8,6 +8,7 @@ Profit Tracker is a project to track your wallet on Aave. It will track your sup
 - [NestJS](https://nestjs.com/) – Progressive Node.js framework for building scalable server-side applications
 - [Docker](https://www.docker.com/) – Containerization platform to build, ship, and run apps
 - [MongoDB](https://www.mongodb.com/) – NoSQL database for modern, scalable applications
+- [Aave SDK](https://docs.aave.com/) – SDK for interacting with the Aave protocol, enabling DeFi lending and borrowing functionalities
 
 ## Requirements
 

@@ -23,6 +23,6 @@ elif [ "$MODE" == "down" ]; then
   sudo docker compose -f docker-env/docker-compose.prod.yml down
 
 else
-  echo -e "Invalid mode: $MODE. Use 'dev' or 'prod'."
+  echo -e "Invalid mode: $MODE. Use 'dev', 'prod' or 'down'."
   exit 1
 fi
