@@ -3,6 +3,7 @@ import { SupportedSites } from './site';
 export enum TransactionType {
   SUPPLY = 'UserSupplyTransaction',
   WITHDRAW = 'UserWithdrawTransaction',
+  UNKNOWN = 'Unknown',
 }
 
 export interface UserTransaction {

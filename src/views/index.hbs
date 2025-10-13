@@ -1,452 +1,453 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Wallets</title>
-  <style>
-    :root {
-      --bg-color: #f4f6f8;
-      --primary: #4CAF50;
-      --primary-dark: #388E3C;
-      --danger: #e74c3c;
-      --text-dark: #333;
-      --text-light: #777;
-      --card-bg: #fff;
-      --border-radius: 10px;
-      --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-      --transition: all 0.3s ease;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-color);
-      margin: 0;
-      padding: 2rem;
-      color: var(--text-dark);
-      line-height: 1.6;
-    }
-
-    h1 {
-      color: #222;
-      margin-bottom: 2rem;
-    }
-
-    .wallet {
-      background-color: var(--card-bg);
-      padding: 1.5rem 2rem;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      margin-bottom: 2rem;
-      transition: var(--transition);
-    }
-
-    .wallet:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    }
-
-    .wallet h2 {
-      font-size: 1.1rem;
-      color: #444;
-      margin: 0;
-    }
-
-    ul {
-      list-style: none;
-      padding-left: 0;
-    }
-
-    li {
-      margin-bottom: 1.2rem;
-      background-color: #fafafa;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
-    }
-
-    .remove-wallet-btn {
-      background-color: var(--danger);
-      color: white;
-      border: none;
-      padding: 0.4rem 0.8rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: var(--transition);
-    }
-
-    .remove-wallet-btn:hover {
-      background-color: #c0392b;
-    }
-
-    form {
-      display: block;
-      margin-top: 0.5rem;
-    }
-
-    label {
-      font-weight: 500;
-      margin-right: 0.5rem;
-    }
-
-    select {
-      padding: 0.4rem 0.6rem;
-      margin-right: 0.8rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      transition: var(--transition);
-    }
-
-    button[type="submit"] {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: var(--transition);
-    }
-
-    button[type="submit"]:hover {
-      background-color: var(--primary-dark);
-    }
-
-    .no-tokens {
-      font-style: italic;
-      color: var(--text-light);
-    }
-
-    hr {
-      margin: 4rem 0 3rem;
-      border: none;
-      border-top: 1px solid #ddd;
-    }
-
-    .add-wallet-container {
-      text-align: center;
-      background-color: var(--card-bg);
-      padding: 2rem;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      max-width: 500px;
-      margin: 2rem auto; /* <-- Centers it horizontally */
-    }
-
-    .add-wallet-container h2 {
-      margin-top: 0;
-      margin-bottom: 0.5rem;
-      font-size: 1.4rem;
-      color: #333;
-    }
-
-    .form-group {
-      margin-bottom: 1.2rem;
-    }
-
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 0.6rem 0.8rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-      box-sizing: border-box;
-      transition: var(--transition);
-    }
-
-    .form-group input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
-    }
-
-    .add-wallet-container button {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .add-wallet-container button:hover {
-      background-color: var(--primary-dark);
-    }
-
-    @media (max-width: 600px) {
-      .wallet-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-      }
-    }
-    .toggle-wallet-btn {
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      cursor: pointer;
-      margin-right: 0.5rem;
-      transition: transform 0.2s ease;
-      transform: rotate(0deg);
-    }
-
-    .toggle-wallet-btn.open {
-      transform: rotate(90deg);
-    }
-
-    .wallet-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-
-    .wallet-title {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .wallet-body {
-      margin-top: 1rem;
-    }
-
-    .token-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-      gap: 1rem;
-      padding: 0;
-      margin: 0;
-      list-style: none;
-      justify-items: stretch;
-    }
-
-    .token-item {
-      background-color: #fafafa;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
-    }
-
-    .nowrap {
-      white-space: nowrap;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Wallets List</h1>
-
-  {{#each wallets}}
-    <div class="wallet">
-      <div class="wallet-header">
-        <div class="wallet-title">
-          <button class="toggle-wallet-btn" aria-label="Toggle wallet details">▶</button>
-          <h2>Wallet Address: {{this.address}}</h2>
-        </div>
-        <button class="remove-wallet-btn" data-address="{{this.address}}">
-          Remove
-        </button>
-      </div>
-      <div class="wallet-body" style="display: none;">
-        {{#if this.sitesSupplied}}
-          <ul class="token-list">
-            {{#each this.sitesSupplied}}
-              {{#each this.suppliedChains}}
-                {{#each this.tokens}}
-                  <li class="token-item">
-                    <strong>Site:</strong> {{../../name}}<br />
-                    <strong>Chain:</strong> {{../chainName}}<br />
-                    <strong>Market:</strong> {{../marketName}}<br />
-                    <strong>Currency:</strong> {{this.currency}}<br />
-                    <strong>Current Balance ~({{this.currency}}/ USD):</strong> 
-                    <span class="nowrap">{{toFixed this.currentBalance}} / {{toFixed this.currentBalanceInUsd}}</span>
-                    <small style="font-size: 0.6em; color: #666; margin-left: 0.3em;">
-                    ({{formatDate this.lastUpdate}})
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <title>Wallets</title>
+      <style>
+         :root {
+         --bg-color: #f4f6f8;
+         --primary: #4CAF50;
+         --primary-dark: #388E3C;
+         --danger: #e74c3c;
+         --text-dark: #333;
+         --text-light: #777;
+         --card-bg: #fff;
+         --border-radius: 10px;
+         --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+         --transition: all 0.3s ease;
+         }
+         body {
+         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+         background-color: var(--bg-color);
+         margin: 0;
+         padding: 2rem;
+         color: var(--text-dark);
+         line-height: 1.6;
+         }
+         h1 {
+         color: #222;
+         margin-bottom: 2rem;
+         }
+         .wallet {
+         background-color: var(--card-bg);
+         padding: 1.5rem 2rem;
+         border-radius: var(--border-radius);
+         box-shadow: var(--shadow);
+         margin-bottom: 2rem;
+         transition: var(--transition);
+         }
+         .wallet:hover {
+         transform: translateY(-2px);
+         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+         }
+         .wallet h2 {
+         font-size: 1.1rem;
+         color: #444;
+         margin: 0;
+         }
+         ul {
+         list-style: none;
+         padding-left: 0;
+         }
+         li {
+         margin-bottom: 1.2rem;
+         background-color: #fafafa;
+         padding: 1rem;
+         border-radius: 8px;
+         box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+         }
+         .remove-wallet-btn {
+         background-color: var(--danger);
+         color: white;
+         border: none;
+         padding: 0.4rem 0.8rem;
+         border-radius: 6px;
+         cursor: pointer;
+         font-size: 0.9rem;
+         transition: var(--transition);
+         }
+         .remove-wallet-btn:hover {
+         background-color: #c0392b;
+         }
+         form {
+         display: block;
+         margin-top: 0.5rem;
+         }
+         label {
+         font-weight: 500;
+         margin-right: 0.5rem;
+         }
+         select {
+         padding: 0.4rem 0.6rem;
+         margin-right: 0.8rem;
+         border: 1px solid #ccc;
+         border-radius: 6px;
+         font-size: 0.9rem;
+         transition: var(--transition);
+         }
+         button[type="submit"] {
+         background-color: var(--primary);
+         color: white;
+         border: none;
+         padding: 0.5rem 1rem;
+         border-radius: 6px;
+         cursor: pointer;
+         font-size: 0.9rem;
+         transition: var(--transition);
+         }
+         button[type="submit"]:hover {
+         background-color: var(--primary-dark);
+         }
+         .no-tokens {
+         font-style: italic;
+         color: var(--text-light);
+         }
+         hr {
+         margin: 4rem 0 3rem;
+         border: none;
+         border-top: 1px solid #ddd;
+         }
+         .add-wallet-container {
+         text-align: center;
+         background-color: var(--card-bg);
+         padding: 2rem;
+         border-radius: var(--border-radius);
+         box-shadow: var(--shadow);
+         max-width: 500px;
+         margin: 2rem auto; /* <-- Centers it horizontally */
+         }
+         .add-wallet-container h2 {
+         margin-top: 0;
+         margin-bottom: 0.5rem;
+         font-size: 1.4rem;
+         color: #333;
+         }
+         .form-group {
+         margin-bottom: 1.2rem;
+         }
+         .form-group label {
+         display: block;
+         font-weight: 600;
+         margin-bottom: 0.5rem;
+         }
+         .form-group input {
+         width: 100%;
+         padding: 0.6rem 0.8rem;
+         border: 1px solid #ccc;
+         border-radius: 6px;
+         font-size: 1rem;
+         box-sizing: border-box;
+         transition: var(--transition);
+         }
+         .form-group input:focus {
+         outline: none;
+         border-color: var(--primary);
+         box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+         }
+         .add-wallet-container button {
+         background-color: var(--primary);
+         color: white;
+         border: none;
+         padding: 0.6rem 1.2rem;
+         font-size: 1rem;
+         border-radius: 6px;
+         cursor: pointer;
+         transition: var(--transition);
+         }
+         .add-wallet-container button:hover {
+         background-color: var(--primary-dark);
+         }
+         @media (max-width: 600px) {
+         .wallet-header {
+         flex-direction: column;
+         align-items: flex-start;
+         gap: 0.5rem;
+         }
+         }
+         .toggle-wallet-btn {
+         background: none;
+         border: none;
+         font-size: 1.2rem;
+         cursor: pointer;
+         margin-right: 0.5rem;
+         transition: transform 0.2s ease;
+         transform: rotate(0deg);
+         }
+         .toggle-wallet-btn.open {
+         transform: rotate(90deg);
+         }
+         .wallet-header {
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         gap: 1rem;
+         }
+         .wallet-title {
+         display: flex;
+         align-items: center;
+         gap: 0.5rem;
+         }
+         .wallet-body {
+         margin-top: 1rem;
+         }
+         .token-list {
+         display: grid;
+         grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+         gap: 1rem;
+         padding: 0;
+         margin: 0;
+         list-style: none;
+         justify-items: stretch;
+         }
+         .token-item {
+         background-color: #fafafa;
+         padding: 1rem;
+         border-radius: 8px;
+         box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+         }
+         .nowrap {
+         white-space: nowrap;
+         }
+         /* Loading overlay */
+         .loading-overlay {
+         position: fixed;
+         inset: 0;
+         background: rgba(255, 255, 255, 0.8);
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
+         z-index: 9999;
+         font-size: 1.1rem;
+         color: var(--text-dark);
+         }
+         .spinner {
+         border: 5px solid #ccc;
+         border-top: 5px solid var(--primary);
+         border-radius: 50%;
+         width: 50px;
+         height: 50px;
+         animation: spin 0.8s linear infinite;
+         margin-bottom: 1rem;
+         }
+         @keyframes spin {
+         to {
+         transform: rotate(360deg);
+         }
+         }
+      </style>
+   </head>
+   <body>
+      <h1>Wallets List</h1>
+      {{#each wallets}}
+      <div class="wallet">
+         <div class="wallet-header">
+            <div class="wallet-title">
+               <button class="toggle-wallet-btn" aria-label="Toggle wallet details">▶</button>
+               <h2>Wallet Address: {{this.address}}</h2>
+            </div>
+            <button class="remove-wallet-btn" data-address="{{this.address}}">
+            Remove
+            </button>
+         </div>
+         <div class="wallet-body" style="display: none;">
+            {{#if this.sitesSupplied}}
+            <ul class="token-list">
+               {{#each this.sitesSupplied}}
+               {{#each this.suppliedChains}}
+               {{#each this.tokens}}
+               <li class="token-item">
+                  <strong>Site:</strong> {{../../name}}<br />
+                  <strong>Chain:</strong> {{../chainName}}<br />
+                  <strong>Market:</strong> {{../marketName}}<br />
+                  <strong>Currency:</strong> {{this.currency}}<br />
+                  <strong>Current Balance ~({{this.currency}}/ USD):</strong> 
+                  <span class="nowrap">{{toFixed this.currentBalance}} / {{toFixed this.currentBalanceInUsd}}</span>
+                  <small style="font-size: 0.6em; color: #666; margin-left: 0.3em;">
+                  ({{formatDate this.lastUpdate}})
                   </small>
-                    {{#each ../../../filters as |filter|}}
-                    
-                      {{#if (and (eq filter.site ../../../name) (eq filter.chain ../../chainName) (eq filter.token ../currency) (eq filter.marketName ../../marketName) )}}
-                      
-                        <form 
-                          method="GET" 
-                          action="/get-file/{{../../../../address}}/{{filter.site}}/{{filter.marketName}}/{{../../poolAddress}}/{{filter.token}}" 
-                          class="download-form" 
-                          data-filters="{{json filter.filters}}"
-                        >
-                          <label>
-                            Year:
-                            <select name="year" class="year-select">
-                              <option value="">All</option>
-                              {{#each filter.filters}}
-                                <option value="{{this.year}}">{{this.year}}</option>
-                              {{/each}}
-                            </select>
-                          </label>
-                          <label>
-                            Month:
-                            <select style="width: 120px;" name="month" class="month-select">
-                              <option value="">All</option>
-                              <!-- JS will populate -->
-                            </select>
-                          </label>
-                          <button type="submit">Download File</button>
-                        </form>
-                      {{/if}}
-                    {{/each}}
-
-                  </li>
-
-                {{/each}}
-              {{/each}}
-            {{/each}}
-          </ul>
-        {{else}}
-          <p class="no-tokens">No tokens supplied.</p>
-        {{/if}}
+                  {{#each ../../../filters as |filter|}}
+                  {{#if (and (eq filter.site ../../../name) (eq filter.chain ../../chainName) (eq filter.token ../currency) (eq filter.marketName ../../marketName) )}}
+                  <form 
+                     method="GET" 
+                     action="/get-file/{{../../../../address}}/{{filter.site}}/{{filter.marketName}}/{{../../poolAddress}}/{{filter.token}}" 
+                     class="download-form" 
+                     data-filters="{{json filter.filters}}"
+                     >
+                     <label>
+                        Year:
+                        <select name="year" class="year-select">
+                           <option value="">All</option>
+                           {{#each filter.filters}}
+                           <option value="{{this.year}}">{{this.year}}</option>
+                           {{/each}}
+                        </select>
+                     </label>
+                     <label>
+                        Month:
+                        <select style="width: 120px;" name="month" class="month-select">
+                           <option value="">All</option>
+                           <!-- JS will populate -->
+                        </select>
+                     </label>
+                     <button type="submit">Download File</button>
+                  </form>
+                  {{/if}}
+                  {{/each}}
+               </li>
+               {{/each}}
+               {{/each}}
+               {{/each}}
+            </ul>
+            {{else}}
+            <p class="no-tokens">No tokens supplied.</p>
+            {{/if}}
+         </div>
       </div>
-    </div>
-  {{/each}}
-
-  <hr />
-
-  <div class="add-wallet-container">
-    <h2>Add a New Wallet</h2>
-    <form id="add-wallet-form">
-      <div class="form-group">
-        <label for="address">Wallet Address</label>
-        <input type="text" id="address" name="address" placeholder="e.g. 0xABC123..." required />
+      {{/each}}
+      <hr />
+      <div class="add-wallet-container">
+         <h2>Add a New Wallet</h2>
+         <form id="add-wallet-form">
+            <div class="form-group">
+               <label for="address">Wallet Address</label>
+               <input type="text" id="address" name="address" placeholder="e.g. 0xABC123..." required />
+            </div>
+            <button type="submit">➕ Add Wallet</button>
+         </form>
       </div>
-      <button type="submit">➕ Add Wallet</button>
-    </form>
-  </div>
-
-
-<script>
-  document.getElementById('add-wallet-form').addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      const address = document.getElementById('address').value;
-
-      const response = await fetch('/add-wallet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ address }),
-      });
-
-      if (response.ok) {
-        alert('Wallet added');
-        window.location.reload();
-      } else {
-        const data = await response.json().catch(() => ({}));
-        alert(data.message || 'Failed to add wallet');
-      }
-    });
-    document.querySelectorAll('.remove-wallet-btn').forEach(button => {
-  button.addEventListener('click', async (e) => {
-    const walletAddress = e.target.getAttribute('data-address');
-    if (!walletAddress) return;
-
-    if (!confirm(`Are you sure you want to remove wallet ${walletAddress}?`)) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/remove-wallet/${walletAddress}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        alert(`Wallet ${walletAddress} removed`);
-        window.location.reload();
-      } else {
-        const data = await response.json().catch(() => ({}));
-        alert(data.message || 'Failed to remove wallet');
-      }
-    } catch (error) {
-      alert('Network error while trying to remove wallet');
-    }
-  });
-});
-
-  document.querySelectorAll('.download-form').forEach((form) => {
-    let filters = [];
-
-    try {
-      const filtersJson = form.dataset.filters || '[]';
-      const parsed = JSON.parse(filtersJson);
-
-      if (Array.isArray(parsed)) {
-        filters = parsed;
-      }
-    } catch (err) {
-      console.error('Invalid filters JSON for form:', form, err);
-    }
-
-    const yearSelect = form.querySelector('.year-select');
-    const monthSelect = form.querySelector('.month-select');
-
-    function populateMonths(year) {
-      monthSelect.innerHTML = '<option value="">All</option>';
-      if (!year) return;
-
-      const yearFilter = filters.find(f => f.year == Number(year));
-      if (!yearFilter) return;
-
-      yearFilter.months.forEach(monthNum => {
-        const month = monthNum.toString().padStart(2, '0');
-        const monthName = new Date(2000, monthNum - 1).toLocaleString('default', {
-          month: 'long'
-        });
-
-        const option = document.createElement('option');
-        option.value = month;
-        option.textContent = monthName;
-        monthSelect.appendChild(option);
-      });
-    }
-
-    if (yearSelect.value) {
-      populateMonths(yearSelect.value);
-    }
-
-    yearSelect.addEventListener('change', (e) => {
-      populateMonths(e.target.value);
-    });
-  });
-
-  document.querySelectorAll('.wallet').forEach(walletEl => {
-    const toggleBtn = walletEl.querySelector('.toggle-wallet-btn');
-    const walletBody = walletEl.querySelector('.wallet-body');
-
-    if (toggleBtn && walletBody) {
-      toggleBtn.addEventListener('click', () => {
-        const isOpen = toggleBtn.classList.contains('open');
-        if (isOpen) {
-          walletBody.style.display = 'none';
-          toggleBtn.classList.remove('open');
-        } else {
-          walletBody.style.display = 'block';
-          toggleBtn.classList.add('open');
-        }
-      });
-    }
-  });
-</script>
-
-
-
-</body>
+      <script>
+         function showLoading(message = 'Loading...') {
+           const overlay = document.getElementById('loading-overlay');
+           overlay.querySelector('p').textContent = message;
+           overlay.style.display = 'flex';
+         }
+         
+         function hideLoading() {
+           const overlay = document.getElementById('loading-overlay');
+           overlay.style.display = 'none';
+         }
+         document.getElementById('add-wallet-form').addEventListener('submit', async function (e) {
+           e.preventDefault();
+           const address = document.getElementById('address').value;
+           showLoading();
+         
+           const response = await fetch('/add-wallet', {
+             method: 'POST',
+             headers: {
+               'Content-Type': 'application/json',
+             },
+             body: JSON.stringify({ address }),
+           });
+         
+           if (response.ok) {
+             alert('Wallet added');
+             window.location.reload();
+           } else {
+             const data = await response.json().catch(() => ({}));
+             alert(data.message || 'Failed to add wallet');
+           }
+           hideLoading()
+         });
+         
+         document.querySelectorAll('.remove-wallet-btn').forEach(button => {
+         button.addEventListener('click', async (e) => {
+         showLoading('Removing Wallet')
+         const walletAddress = e.target.getAttribute('data-address');
+         if (!walletAddress) return;
+         
+         if (!confirm(`Are you sure you want to remove wallet ${walletAddress}?`)) {
+           return;
+         }
+         
+         try {
+           const response = await fetch(`/remove-wallet/${walletAddress}`, {
+             method: 'DELETE',
+           });
+         
+           if (response.ok) {
+             alert(`Wallet ${walletAddress} removed`);
+             window.location.reload();
+           } else {
+             const data = await response.json().catch(() => ({}));
+             alert(data.message || 'Failed to remove wallet');
+           }
+         } catch (error) {
+           alert('Network error while trying to remove wallet');
+         } finally{
+           hideLoading()
+         }
+         });
+         });
+         
+         document.querySelectorAll('.download-form').forEach((form) => {
+         let filters = [];
+         
+         try {
+           const filtersJson = form.dataset.filters || '[]';
+           const parsed = JSON.parse(filtersJson);
+         
+           if (Array.isArray(parsed)) {
+             filters = parsed;
+           }
+         } catch (err) {
+           console.error('Invalid filters JSON for form:', form, err);
+         }
+         
+         const yearSelect = form.querySelector('.year-select');
+         const monthSelect = form.querySelector('.month-select');
+         
+         function populateMonths(year) {
+           monthSelect.innerHTML = '<option value="">All</option>';
+           if (!year) return;
+         
+           const yearFilter = filters.find(f => f.year == Number(year));
+           if (!yearFilter) return;
+         
+           yearFilter.months.forEach(monthNum => {
+             const month = monthNum.toString().padStart(2, '0');
+             const monthName = new Date(2000, monthNum - 1).toLocaleString('default', {
+               month: 'long'
+             });
+         
+             const option = document.createElement('option');
+             option.value = month;
+             option.textContent = monthName;
+             monthSelect.appendChild(option);
+           });
+         }
+         
+         if (yearSelect.value) {
+           populateMonths(yearSelect.value);
+         }
+         
+         yearSelect.addEventListener('change', (e) => {
+           populateMonths(e.target.value);
+         });
+         });
+         
+         document.querySelectorAll('.wallet').forEach(walletEl => {
+         const toggleBtn = walletEl.querySelector('.toggle-wallet-btn');
+         const walletBody = walletEl.querySelector('.wallet-body');
+         
+         if (toggleBtn && walletBody) {
+           toggleBtn.addEventListener('click', () => {
+             const isOpen = toggleBtn.classList.contains('open');
+             if (isOpen) {
+               walletBody.style.display = 'none';
+               toggleBtn.classList.remove('open');
+             } else {
+               walletBody.style.display = 'block';
+               toggleBtn.classList.add('open');
+             }
+           });
+         }
+         });
+      </script>
+      <div id="loading-overlay" class="loading-overlay" style="display: none;">
+         <div class="spinner"></div>
+         <p>Loading, please wait...</p>
+      </div>
+   </body>
 </html>

@@ -7,7 +7,7 @@ export class WalletValidator {
     address: string,
     databaseRepository: IDataBaseRepository,
   ): Promise<void> {
-    if (!this.isValid(address)) {
+    if (!this.isEvmValid(address) && !this.isSolanaAddressValid(address)) {
       throw new Error(`Invalid wallet address: ${address}`);
     }
     if (await this.isInDatabase(address, databaseRepository)) {
@@ -31,10 +31,12 @@ export class WalletValidator {
     }
   }
 
-  private static isValid(address: string): boolean {
+  static isEvmValid(address: string): boolean {
     return /^0x[a-fA-F0-9]{40}$/.test(address);
   }
-
+  static isSolanaAddressValid(address: string): boolean {
+    return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address);
+  }
   private static hasTokenSupplied(wallet: Wallet) {
     return wallet?.sitesSupplied.length ?? 0 > 0;
   }

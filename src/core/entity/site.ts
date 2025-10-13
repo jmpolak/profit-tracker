@@ -4,5 +4,5 @@ export type SupportedSites = Aave | Jupiter;
 
 export enum Sites {
   AAVE = 'Aave',
-  JUPYTER = 'Jupiter',
+  JUPITER = 'Jupiter',
 }
