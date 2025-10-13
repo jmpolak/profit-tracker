@@ -13,20 +13,23 @@ import {
   userTransactionHistory,
 } from '@aave/client/actions';
 import { evmAddress } from '@aave/client';
-
-import { IAaveRestClientRepository } from 'src/core/abstract/aave-rest-client/aave-rest-client-repository';
-import { InternalServerErrorException } from '@nestjs/common';
+import { ILendingRestClient } from 'src/core/abstract/lending-rest-client/lending-rest-client.js';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SuppliedTokensBalance } from 'src/core/entity/supply';
-import { AAVE_CHAINS } from '../../../../all-chains.js';
+import { AAVE_CHAINS } from '../../../../../all-chains.js';
 import { Sites } from 'src/core/entity/site';
 import {
   TransactionType,
   UserTransaction,
 } from 'src/core/entity/transaction.js';
-import { BigNumber } from 'bignumber.js';
-export class AaveRestClient implements IAaveRestClientRepository {
-  private client: AaveClient;
+import { DailyPositionsInformation } from 'src/core/entity/daily-position-information.js';
+import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
+
+@Injectable()
+export class AaveRestClient implements ILendingRestClient {
   readonly SITE_NAME = Sites.AAVE;
+
+  private client: AaveClient;
   readonly AAVE_CHAINS: {
     name: string;
     chainName: string;
@@ -37,49 +40,22 @@ export class AaveRestClient implements IAaveRestClientRepository {
     this.client = AaveClient.create();
     this.AAVE_CHAINS = AAVE_CHAINS;
   }
-  /**
-   * ToDo remove it
-   * - save markets data in redis (on startUp?) (update after a curtain time)
-   *
-   * - Use the data in getTransaction -> iterativ
-   * -> map the data to chain and token
-   * -> make own data class
-   *
-   *
-   * - Use the data in getCurrentBalance -> in param markets
-   * -> map the data to chain and token
-   * SuppliedTokensBalance: [{chainName: polygon, poolAddress: 123, usd: {}, wpol: {}}]
-   *
-   * - frontend adjustments (chose -> or display (lots of options -> ))
-   * -> chose aave / jupiter
-   * -> chose chain
-   * -> chose token
-   *
-   */
-  public async getMarkets() {
-    // const chainIds = AAVE_CHAINS.map((c) => chainId(c));
-    // const data = await markets(this.client, {
-    //   chainIds,
-    // });
-    // if (data.isErr()) {
-    //   throw new InternalServerErrorException(
-    //     'Could not get market data',
-    //     data.error,
-    //   );
-    // }
-    // return data.value.map((v) => ({
-    //   name: v.name,
-    //   chainName: v.chain.name,
-    //   chainId: v.chain.chainId,
-    //   poolAddress: v.address,
-    // }));
-    return await this.getTransactionsOnAllChains(
-      '0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf',
-    );
-    // return this.getCurrentBalance('0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf');
+
+  public isExecutable(walletAddress: string) {
+    return WalletValidator.isEvmValid(walletAddress);
   }
 
-  public async getTransactionsOnAllChains(userAddress: string) {
+  public async getDailyPositionInformation(
+    wallet: string,
+  ): Promise<DailyPositionsInformation> {
+    const currentSuppliedPositions =
+      await this.getCurrentBalanceOfSuppliedTokens(wallet);
+    const userTransactions = await this.getTransactionsOnAllChains(wallet);
+
+    return { supply: currentSuppliedPositions, userTransactions };
+  }
+
+  private async getTransactionsOnAllChains(userAddress: string) {
     return await Promise.all(
       this.AAVE_CHAINS.map((ac) =>
         this.getTransactions(userAddress, ac.poolAddress, ac.chainId),
@@ -87,7 +63,7 @@ export class AaveRestClient implements IAaveRestClientRepository {
     ).then((x) => x.flat());
   }
 
-  public async getTransactions(
+  private async getTransactions(
     userAddress: string,
     poolAddress: string,
     chainIdNumber: number,
@@ -120,7 +96,7 @@ export class AaveRestClient implements IAaveRestClientRepository {
     }));
   }
 
-  public async getCurrentBalance(
+  private async getCurrentBalanceOfSuppliedTokens(
     userAddress: string,
   ): Promise<SuppliedTokensBalance[]> {
     const user = evmAddress(userAddress);
@@ -159,5 +135,11 @@ export class AaveRestClient implements IAaveRestClientRepository {
       });
     });
     return suppliedPositions;
+  }
+
+  public async getMarkets() {
+    return this.getCurrentBalanceOfSuppliedTokens(
+      '0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf',
+    );
   }
 }
