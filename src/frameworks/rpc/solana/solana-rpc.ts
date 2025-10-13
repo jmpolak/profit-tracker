@@ -7,12 +7,21 @@ import {
 import { BigNumber } from 'bignumber.js';
 import { SupportedSites } from 'src/core/entity/site';
 import { TransactionType, UserTransaction } from 'src/core/entity/transaction';
+import { ConfigService } from '@nestjs/config';
 @Injectable({ scope: Scope.TRANSIENT })
 export class SolanaRpc extends Connection {
-  constructor() {
-    super(
-      'https://mainnet.helius-rpc.com/?api-key=9babf6f0-cc89-4950-8274-7985cb524080', // ToDo into env
+  constructor(private readonly configService: ConfigService) {
+    const rpcUrl = configService.get<string>(
+      'SOLANA-RPC-URL-WITH-OR-WITHOUT-KEY',
     );
+
+    if (!rpcUrl) {
+      throw new Error(
+        'Missing SOLANA-RPC-URL-WITH-OR-WITHOUT-KEY in environment variables',
+      );
+    }
+
+    super(rpcUrl);
   }
   public parseRpcTransaction(
     // to utils

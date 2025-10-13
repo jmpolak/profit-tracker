@@ -6,13 +6,16 @@ import { DailyUpdateWalletCronJobModule } from './frameworks/cronjobs/daily-upda
 import { LoggerMiddleware } from './interface/middleware/http-request-logger';
 import { LoggerModule } from './frameworks/logger/logger-module';
 import { UnhandledHttpExceptionsFilter } from './interface/exception-filters/unhandled-http-exceptions-filter';
-
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
     WalletModule,
     FileModule,
     DailyUpdateWalletCronJobModule,
     LoggerModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
   ],
   controllers: [BasicController],
   providers: [UnhandledHttpExceptionsFilter],

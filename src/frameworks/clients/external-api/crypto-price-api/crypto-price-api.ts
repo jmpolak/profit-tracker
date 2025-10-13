@@ -1,10 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CryptoPriceApi {
-  private readonly baseUrl =
-    'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest';
-  private readonly apiKey = '9b096756-f0a1-4863-889e-b8808720bcc8'; // ToDo store safely in .env
+  private readonly baseUrl: string;
+  private readonly apiKey: string;
+
+  constructor(private readonly configService: ConfigService) {
+    this.baseUrl = configService.get<string>('CRYPTO-API') ?? '';
+    this.apiKey = configService.get<string>('CRYPTO-API-KEY') ?? '';
+
+    if (!this.baseUrl || !this.apiKey) {
+      throw new Error('Missing CoinMarketCap API configuration in .env');
+    }
+  }
 
   /**
    * Fetch USD prices for multiple cryptocurrencies in one call
