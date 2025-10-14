@@ -8,6 +8,7 @@ import { BigNumber } from 'bignumber.js';
 import { SupportedSites } from 'src/core/entity/site';
 import { TransactionType, UserTransaction } from 'src/core/entity/transaction';
 import { ConfigService } from '@nestjs/config';
+import { TimeUtil } from 'src/shared/utils/time';
 @Injectable({ scope: Scope.TRANSIENT })
 export class SolanaRpc extends Connection {
   constructor(private readonly configService: ConfigService) {
@@ -23,6 +24,51 @@ export class SolanaRpc extends Connection {
 
     super(rpcUrl);
   }
+
+  public async getTransactionsFromRpc(
+    userAddress: string,
+    underlyingAssetAddress: string,
+    metadata: {
+      poolAddress: string;
+      marketName: string;
+      tokenSymbol: string;
+      tokenPriceUsd: number;
+      siteName: SupportedSites;
+    },
+  ): Promise<UserTransaction[]> {
+    const BATCH_SIZE = 5;
+    const result: UserTransaction[] = [];
+    const sigInfos = await this.getSignaturesForAddress(
+      new PublicKey(userAddress),
+      { limit: 50 }, // ToDo we could also use { before: signature} we would use the latest transaction of this user
+    );
+
+    for (let i = 0; i < sigInfos.length; i += BATCH_SIZE) {
+      const batch = sigInfos.slice(i, i + BATCH_SIZE);
+      const signatures = batch.map((s) => s.signature);
+
+      for (const signature of signatures) {
+        const t = await this.getParsedTransaction(signature, {
+          maxSupportedTransactionVersion: 0,
+        });
+        if (t) {
+          const resultTrx = this.parseRpcTransaction(
+            t,
+            underlyingAssetAddress,
+            metadata,
+            metadata.siteName,
+          );
+          resultTrx ? result.push(resultTrx) : undefined;
+        }
+        await TimeUtil.delay(500);
+      }
+
+      await TimeUtil.delay(500); // throttle
+    }
+
+    return result;
+  }
+
   public parseRpcTransaction(
     // to utils
     tx: ParsedTransactionWithMeta,
