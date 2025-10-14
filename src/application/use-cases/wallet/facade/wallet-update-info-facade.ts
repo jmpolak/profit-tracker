@@ -1,30 +1,26 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TransactionsAnalyticUtils } from 'src/application/services/transactions/transactions-analytics-utils';
 import { WalletTokenSupplied } from 'src/application/services/wallet/token-supplied';
 import { IDataBaseRepository } from 'src/core/abstract/database-repository.ts/database-repository';
-import { ILendingRestClient } from 'src/core/abstract/lending-rest-client/lending-rest-client';
 import {
   DailyPositionsInformation,
   DailyPositionInformationForOnePosition,
 } from 'src/core/entity/daily-position-information';
-import { LENDING_REST_CLIENTS } from 'src/frameworks/clients/lending-sites/lending-rest-client.module';
 import { Wallet } from 'src/frameworks/database/model/wallet.model';
+import { IDailyInfoFetcherFacade } from 'src/core/abstract/daily-info-facade/daily-info-facade';
 @Injectable()
 export class WalletUpdateDailyInformationFacade {
-  @Inject(LENDING_REST_CLIENTS)
-  private lendingRestClient: ILendingRestClient[];
-  constructor(private databaseRepository: IDataBaseRepository) {}
+  constructor(
+    private databaseRepository: IDataBaseRepository,
+    private dailyInfoFetcher: IDailyInfoFetcherFacade,
+  ) {}
   async getDailyInformation(
     wallet: Wallet,
     onWalletCreation?: boolean,
   ): Promise<DailyPositionInformationForOnePosition[]> {
     const result: DailyPositionInformationForOnePosition[] = [];
     const dailyInformation = (
-      await Promise.all(
-        this.lendingRestClient
-          .filter((lrc) => lrc.isExecutable(wallet.address)) // execute aave only for evm address - jupiter only for solana address
-          .map((lrc) => lrc.getDailyPositionInformation(wallet.address)),
-      )
+      await this.dailyInfoFetcher.execute(wallet.address)
     ).reduce(
       (acc, obj) => ({
         supply: [...acc.supply, ...obj.supply],

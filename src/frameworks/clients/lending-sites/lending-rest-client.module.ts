@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AaveRestClient } from './aave-rest-client/aave-rest-client';
 import { JupiterLendRestClient } from './jupiter-lend-rest-client/jupiter-lend-rest-client';
-import { ILendingRestClient } from 'src/core/abstract/lending-rest-client/lending-rest-client';
-import { JupiterLendRestModule } from './jupiter-lend-rest-client/jupiter-lend-rest.module';
-import { AaveRestModule } from './aave-rest-client/aave-rest.module';
+import { ILendingRestClient } from 'src/frameworks/clients/lending-sites/lending-rest-client';
 export const LENDING_REST_CLIENTS = 'LENDING_REST_CLIENT';
 @Module({
-  imports: [JupiterLendRestModule, AaveRestModule],
+  imports: [],
   providers: [
+    AaveRestClient,
+    JupiterLendRestClient,
     {
       provide: LENDING_REST_CLIENTS,
       useFactory: (
@@ -17,6 +17,6 @@ export const LENDING_REST_CLIENTS = 'LENDING_REST_CLIENT';
       inject: [AaveRestClient, JupiterLendRestClient],
     },
   ],
-  exports: [LENDING_REST_CLIENTS],
+  exports: [LENDING_REST_CLIENTS, AaveRestClient, JupiterLendRestClient],
 })
 export class LendingRestClientModule {}

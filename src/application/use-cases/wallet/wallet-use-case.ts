@@ -21,7 +21,7 @@ export class WalletUseCase {
   async test() {
     // const wallet = await this.getWalletData('BAGbqJ9SerqSFeZzkFvKumhnH64G6s2PTW2VWc5MTpYG')
     const test = await this.walletFacade.getDailyInformation({
-      address: 'BAGbqJ9SerqSFeZzkFvKumhnH64G6s2PTW2VWc5MTpYG',
+      address: '0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf',
       sitesSupplied: [],
     });
     return test;

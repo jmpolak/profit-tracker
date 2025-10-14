@@ -4,30 +4,22 @@ import {
   MarketUserReserveSupplyPosition,
   OrderDirection,
   PageSize,
-  txHash,
-  UserTransactionItem,
 } from '@aave/client';
-import {
-  markets,
-  userSupplies,
-  userTransactionHistory,
-} from '@aave/client/actions';
+import { userSupplies, userTransactionHistory } from '@aave/client/actions';
 import { evmAddress } from '@aave/client';
-import { ILendingRestClient } from 'src/core/abstract/lending-rest-client/lending-rest-client.js';
+import { ILendingRestClient } from 'src/frameworks/clients/lending-sites/lending-rest-client.js';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { SuppliedTokensBalance } from 'src/core/entity/supply';
 import { AAVE_CHAINS } from '../../../../../all-chains.js';
-import { Sites } from 'src/core/entity/site';
+import { Sites, SupportedSites } from 'src/core/entity/site';
 import {
   TransactionType,
   UserTransaction,
 } from 'src/core/entity/transaction.js';
-import { DailyPositionsInformation } from 'src/core/entity/daily-position-information.js';
-import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 
 @Injectable()
 export class AaveRestClient implements ILendingRestClient {
-  readonly SITE_NAME = Sites.AAVE;
+  readonly SITE_NAME: SupportedSites = Sites.AAVE;
 
   private client: AaveClient;
   readonly AAVE_CHAINS: {
@@ -41,21 +33,7 @@ export class AaveRestClient implements ILendingRestClient {
     this.AAVE_CHAINS = AAVE_CHAINS;
   }
 
-  public isExecutable(walletAddress: string) {
-    return WalletValidator.isEvmValid(walletAddress);
-  }
-
-  public async getDailyPositionInformation(
-    wallet: string,
-  ): Promise<DailyPositionsInformation> {
-    const currentSuppliedPositions =
-      await this.getCurrentBalanceOfSuppliedTokens(wallet);
-    const userTransactions = await this.getTransactionsOnAllChains(wallet);
-
-    return { supply: currentSuppliedPositions, userTransactions };
-  }
-
-  private async getTransactionsOnAllChains(userAddress: string) {
+  async getTransactionsOnAllChains(userAddress: string) {
     return await Promise.all(
       this.AAVE_CHAINS.map((ac) =>
         this.getTransactions(userAddress, ac.poolAddress, ac.chainId),
@@ -96,7 +74,7 @@ export class AaveRestClient implements ILendingRestClient {
     }));
   }
 
-  private async getCurrentBalanceOfSuppliedTokens(
+  async getCurrentBalanceOfSuppliedTokens(
     userAddress: string,
   ): Promise<SuppliedTokensBalance[]> {
     const user = evmAddress(userAddress);
