@@ -247,7 +247,7 @@ export class WalletUseCase {
                 transactionBalanceInUsd: info.transactionBalanceInUsd,
                 balance: info.supply.balance,
                 dailyProfit: info.dailyProfit,
-                dailyProfitInPercentage: info.transactionBalanceInUsd,
+                dailyProfitInPercentage: info.dailyProfitInPercentage,
                 ...(onWalletCreation
                   ? { createdByCreateWalletEvent: true }
                   : undefined),
