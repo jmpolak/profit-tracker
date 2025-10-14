@@ -4,14 +4,8 @@ import {
   MarketUserReserveSupplyPosition,
   OrderDirection,
   PageSize,
-  txHash,
-  UserTransactionItem,
 } from '@aave/client';
-import {
-  markets,
-  userSupplies,
-  userTransactionHistory,
-} from '@aave/client/actions';
+import { userSupplies, userTransactionHistory } from '@aave/client/actions';
 import { evmAddress } from '@aave/client';
 import { ILendingRestClient } from 'src/frameworks/clients/lending-sites/lending-rest-client.js';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
@@ -22,8 +16,6 @@ import {
   TransactionType,
   UserTransaction,
 } from 'src/core/entity/transaction.js';
-import { DailyPositionsInformation } from 'src/core/entity/daily-position-information.js';
-import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 
 @Injectable()
 export class AaveRestClient implements ILendingRestClient {
