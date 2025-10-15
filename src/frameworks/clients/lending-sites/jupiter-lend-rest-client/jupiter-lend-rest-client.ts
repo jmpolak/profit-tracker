@@ -36,7 +36,10 @@ export class JupiterLendRestClient implements ILendingRestClient {
           ltd.token.decimals,
         ),
         balanceInUsd: '0', // it will be set later in func getDailyPositionInformation;
-        tokenSymbol: ltd.token.asset.symbol,
+        tokenSymbol: ParseUtil.unwrapSymbolWhenCoinWrapped(
+          ltd.token.asset.name,
+          ltd.token.asset.symbol,
+        ),
         site: this.SITE_NAME,
         underlyingAssetAddress: ltd.token.assetAddress,
       }));

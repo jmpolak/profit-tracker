@@ -17,6 +17,7 @@ type Asset = {
   decimals: number;
   price: string;
   symbol: string;
+  name: string;
 };
 type Token = {
   address: string;
