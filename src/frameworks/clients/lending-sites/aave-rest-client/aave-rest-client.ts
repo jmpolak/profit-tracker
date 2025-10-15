@@ -16,7 +16,6 @@ import {
   TransactionType,
   UserTransaction,
 } from 'src/core/entity/transaction.js';
-import { ParseUtil } from '../parse-utils';
 
 @Injectable()
 export class AaveRestClient implements ILendingRestClient {
@@ -95,10 +94,7 @@ export class AaveRestClient implements ILendingRestClient {
     }
     const suppliedPositions: SuppliedTokensBalance[] = [];
     result.value.forEach((position: MarketUserReserveSupplyPosition) => {
-      const token = ParseUtil.unwrapSymbolWhenCoinWrapped(
-        position.currency.name,
-        position.currency.symbol,
-      );
+      const token = position.currency.symbol;
       const currentAmount = position.balance.amount.value.toString();
       const chainName = position.market.chain.name;
       const marketName = position.market.name;
