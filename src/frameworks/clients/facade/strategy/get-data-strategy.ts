@@ -3,17 +3,15 @@ import { JupiterLendRestClient } from '../../lending-sites/jupiter-lend-rest-cli
 import { UserTransaction } from 'src/core/entity/transaction';
 import { ParseUtil } from '../../lending-sites/parse-utils';
 import { SolanaRpc } from '../../rpc/solana/solana-rpc';
-import { CryptoPriceApi } from '../../external-api/crypto-price-api/crypto-price-api';
+import { CoingeckoPriceApi } from '../../external-api/coingecko-price-api/coingecko-price-api';
 import { AaveRestClient } from '../../lending-sites/aave-rest-client/aave-rest-client';
 import { ILendingRestClient } from 'src/frameworks/clients/lending-sites/lending-rest-client';
-import { SupportedSites } from 'src/core/entity/site';
 import { Injectable } from '@nestjs/common';
 import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 
 export interface GetDailyInformationStrategy {
   client: ILendingRestClient;
   isExecutable(wallet: string): boolean;
-  getSite(): SupportedSites;
   getDailyPositionInformation(
     wallet: string,
   ): Promise<DailyPositionsInformation>;
@@ -24,9 +22,7 @@ export class AaveGetDailyInformationStrategy
   implements GetDailyInformationStrategy
 {
   constructor(public readonly client: AaveRestClient) {}
-  getSite() {
-    return this.client.SITE_NAME;
-  }
+
   public isExecutable(walletAddress: string) {
     return WalletValidator.isEvmValid(walletAddress);
   }
@@ -49,15 +45,11 @@ export class JupiterGetDailyInformationStrategy
   constructor(
     public readonly client: JupiterLendRestClient,
     private connection: SolanaRpc,
-    private priceApi: CryptoPriceApi,
+    private priceApi: CoingeckoPriceApi,
   ) {}
 
   public isExecutable(walletAddress: string) {
     return WalletValidator.isSolanaAddressValid(walletAddress);
-  }
-
-  getSite(): SupportedSites {
-    return this.client.SITE_NAME;
   }
 
   async getDailyPositionInformation(
@@ -66,14 +58,14 @@ export class JupiterGetDailyInformationStrategy
     const supply = await this.client.getCurrentBalanceOfSuppliedTokens(wallet);
 
     const usdPricesForTokens = await this.priceApi.getUsdPrices(
-      supply.map((s) => s.tokenSymbol),
+      supply.map((s) => s.coinGeckoId),
     );
 
     supply.forEach(
       (s) =>
         (s.balanceInUsd = ParseUtil.getUsdValue(
           s.balance,
-          usdPricesForTokens.get(s.tokenSymbol)!.toString(),
+          usdPricesForTokens.get(s.coinGeckoId)?.toString() ?? '0',
         )),
     );
 

@@ -3,7 +3,7 @@ import { ILendingRestClient } from 'src/frameworks/clients/lending-sites/lending
 import { Sites, SupportedSites } from 'src/core/entity/site';
 import {
   LendingToken,
-  SuppliedTokensBalanceWithUnderlayingAssetAddress,
+  SuppliedTokensBalanceWithUnderlayingAssetAddressAndCeckoId,
 } from './types';
 import { ParseUtil } from '../parse-utils';
 import { StringUtil } from 'src/shared/utils/convert-string';
@@ -18,7 +18,7 @@ export class JupiterLendRestClient implements ILendingRestClient {
 
   async getCurrentBalanceOfSuppliedTokens(
     userAddress: string,
-  ): Promise<SuppliedTokensBalanceWithUnderlayingAssetAddress[]> {
+  ): Promise<SuppliedTokensBalanceWithUnderlayingAssetAddressAndCeckoId[]> {
     const data = await fetch(
       `${this.baseUrl}lend/v1/earn/positions?users=${userAddress}`,
     );
@@ -39,6 +39,7 @@ export class JupiterLendRestClient implements ILendingRestClient {
         tokenSymbol: ltd.token.asset.symbol,
         site: this.SITE_NAME,
         underlyingAssetAddress: ltd.token.assetAddress,
+        coinGeckoId: ltd.token.asset.coingeckoId,
       }));
   }
 
