@@ -22,4 +22,11 @@ export abstract class ParseUtil {
       .multipliedBy(BigNumber(usdPerTokenValue))
       .toString();
   }
+
+  static unwrapSymbolWhenCoinWrapped(currencyFullName: string, symbol: string) {
+    if (/wrapped/i.test(currencyFullName) && /^[Ww]/.test(symbol)) {
+      return symbol.substring(1);
+    }
+    return symbol;
+  }
 }
