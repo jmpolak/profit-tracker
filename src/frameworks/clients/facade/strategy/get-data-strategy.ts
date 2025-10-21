@@ -3,7 +3,7 @@ import { JupiterLendRestClient } from '../../lending-sites/jupiter-lend-rest-cli
 import { UserTransaction } from 'src/core/entity/transaction';
 import { ParseUtil } from '../../lending-sites/parse-utils';
 import { SolanaRpc } from '../../rpc/solana/solana-rpc';
-import { CoingeckoPriceApi } from '../../external-api/coingecko-price-api/coingecko-price-api';
+import { CoingeckoPriceApi } from '../../coingecko-price-api/coingecko-price-api';
 import { AaveRestClient } from '../../lending-sites/aave-rest-client/aave-rest-client';
 import { ILendingRestClient } from 'src/frameworks/clients/lending-sites/lending-rest-client';
 import { Injectable } from '@nestjs/common';
@@ -65,7 +65,7 @@ export class JupiterGetDailyInformationStrategy
       (s) =>
         (s.balanceInUsd = ParseUtil.getUsdValue(
           s.balance,
-          usdPricesForTokens.get(s.coinGeckoId)?.toString() ?? '0',
+          usdPricesForTokens.get(s.coinGeckoId) ?? '0',
         )),
     );
 

@@ -32,7 +32,7 @@ export class SolanaRpc extends Connection {
       poolAddress: string;
       marketName: string;
       tokenSymbol: string;
-      tokenPriceUsd: number;
+      tokenPriceUsd: string;
       siteName: SupportedSites;
     },
   ): Promise<UserTransaction[]> {
@@ -77,7 +77,7 @@ export class SolanaRpc extends Connection {
       poolAddress: string;
       marketName: string;
       tokenSymbol: string;
-      tokenPriceUsd: number;
+      tokenPriceUsd: string;
     },
     siteName: SupportedSites,
   ): UserTransaction | null {

@@ -13,7 +13,7 @@ export class CoingeckoPriceApi {
    * @param symbols Array like ['BTC', 'ETH', 'SOL']
    * @returns Object like { BTC: 68123.42, ETH: 2451.67 }
    */
-  async getUsdPrices(coinGeckoIds: string[]): Promise<Map<string, number>> {
+  async getUsdPrices(coinGeckoIds: string[]): Promise<Map<string, string>> {
     const url =
       this.baseUrl + `?ids=${coinGeckoIds.join(',')}&vs_currencies=usd`;
 
@@ -25,8 +25,8 @@ export class CoingeckoPriceApi {
     const data: Record<string, { usd: number }> = await res.json();
 
     // Create Map of token -> USD price
-    const priceMap = new Map<string, number>(
-      Object.entries(data).map(([key, value]) => [key, value.usd]),
+    const priceMap = new Map<string, string>(
+      Object.entries(data).map(([key, value]) => [key, value.usd.toString()]),
     );
 
     return priceMap;
