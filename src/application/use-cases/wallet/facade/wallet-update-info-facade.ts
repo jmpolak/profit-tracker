@@ -8,15 +8,17 @@ import {
 } from 'src/core/entity/daily-position-information';
 import { Wallet } from 'src/frameworks/database/model/wallet.model';
 import { IDailyInfoFetcherFacade } from 'src/core/abstract/daily-info-facade/daily-info-facade';
+import { ProfitUtils } from 'src/application/services/profit/profit-utils';
 @Injectable()
 export class WalletUpdateDailyInformationFacade {
   constructor(
     private databaseRepository: IDataBaseRepository,
     private dailyInfoFetcher: IDailyInfoFetcherFacade,
   ) {}
-  async getDailyInformation(
+  async getDailySupplyInformation(
     wallet: Wallet,
-    onWalletCreation?: boolean,
+    onWalletCreation: boolean,
+    date?: Date,
   ): Promise<DailyPositionInformationForOnePosition[]> {
     const result: DailyPositionInformationForOnePosition[] = [];
     const dailyInformation = (
@@ -32,6 +34,7 @@ export class WalletUpdateDailyInformationFacade {
     const walletWithRecentUpdatedTokenSupplies =
       await this.databaseRepository.walletDataBaseRepository.getAllRecentUpdatedTokenSuppliedByWalletAddress(
         wallet.address,
+        date,
       );
     const { supply, userTransactions } = dailyInformation;
 
@@ -76,11 +79,12 @@ export class WalletUpdateDailyInformationFacade {
         stb.site,
       );
       const currentDayTransactionsByToken =
-        TransactionsAnalyticUtils.filterTransactionsFromTodayAndByTokenSymbol(
+        TransactionsAnalyticUtils.filterTransactionsByDateAndByTokenSymbol(
           userTransactions,
           stb.tokenSymbol,
           stb.market.poolAddress,
           stb.market.marketName,
+          date,
         );
 
       const currentDayTransactionBalanceByToken =
@@ -93,7 +97,7 @@ export class WalletUpdateDailyInformationFacade {
           currentDayTransactionsByToken,
         );
       const { dailyProfitInPercentage, dailyProfit } =
-        TransactionsAnalyticUtils.getDailyProfit(
+        ProfitUtils.getDailyProfit(
           stb.balance,
           tokenSupplied?.currentBalance,
           currentDayTransactionBalanceByToken,

@@ -20,10 +20,13 @@ export class WalletUseCase {
   //@ToDo: remove it
   async test() {
     // const wallet = await this.getWalletData('BAGbqJ9SerqSFeZzkFvKumhnH64G6s2PTW2VWc5MTpYG')
-    const test = await this.walletFacade.getDailyInformation({
-      address: '0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf',
-      sitesSupplied: [],
-    });
+    const test = await this.walletFacade.getDailySupplyInformation(
+      {
+        address: '0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf',
+        sitesSupplied: [],
+      },
+      false,
+    );
     return test;
   }
 
@@ -72,13 +75,13 @@ export class WalletUseCase {
     }
   }
 
-  async updateWallets() {
+  async updateWallets(date?: Date) {
     try {
       const allWallets =
         await this.databaseRepository.walletDataBaseRepository.findAll();
       await Promise.allSettled(
         allWallets.map(async (wallet) => {
-          return this.updateWallet(wallet);
+          return this.updateWallet(wallet, false, date);
         }),
       );
     } catch (err) {
@@ -104,14 +107,24 @@ export class WalletUseCase {
     }
   }
 
-  private async updateWallet(wallet: Wallet, onWalletCreation?: boolean) {
+  private async updateWallet(
+    wallet: Wallet,
+    onWalletCreation: boolean,
+    date?: Date,
+  ) {
     try {
-      const dailyInfo = await this.walletFacade.getDailyInformation(
+      const supplyInfo = await this.walletFacade.getDailySupplyInformation(
         wallet,
         onWalletCreation,
+        date,
       );
 
-      await this.handleWalletEntry(wallet.address, dailyInfo, onWalletCreation);
+      await this.handleWalletEntry(
+        wallet.address,
+        supplyInfo,
+        onWalletCreation,
+        date,
+      );
     } catch (err) {
       this.logger.error(
         err?.message ?? `Error updating wallet: ${wallet.address}`,
@@ -126,6 +139,7 @@ export class WalletUseCase {
     userAddress: string,
     dailyInfo: DailyPositionInformationForOnePosition[],
     onWalletCreation?: boolean,
+    date?: Date,
   ) {
     try {
       let wallet =
@@ -133,12 +147,12 @@ export class WalletUseCase {
           userAddress,
         );
 
-      const checkIfLastUpdateWasToday = (date: Date): boolean => {
-        const today = new Date();
+      const checkIfLastUpdateWasAlreadyMade = (lastUpdate: Date): boolean => {
+        const today = date ? date : new Date();
         return (
-          date.getDate() === today.getDate() &&
-          date.getMonth() === today.getMonth() &&
-          date.getFullYear() === today.getFullYear()
+          lastUpdate.getDate() === today.getDate() &&
+          lastUpdate.getMonth() === today.getMonth() &&
+          lastUpdate.getFullYear() === today.getFullYear()
         );
       };
       if (!wallet) {
@@ -167,7 +181,7 @@ export class WalletUseCase {
         if (tokenSupplied) {
           const lastFileData = tokenSupplied.historicalData.at(-1);
           if (lastFileData && !lastFileData.createdByCreateWalletEvent) {
-            const wasToday = checkIfLastUpdateWasToday(
+            const wasToday = checkIfLastUpdateWasAlreadyMade(
               tokenSupplied.lastUpdate,
             );
             if (wasToday) {
@@ -185,10 +199,7 @@ export class WalletUseCase {
           ),
         );
 
-        const dateForInsert = new Date();
-        // const dateForInsert = new Date(
-        //   new Date().setDate(new Date().getDate() - 1),
-        // );
+        const dateForInsert = date ? date : new Date();
 
         const createToken = () => ({
           currency: info.supply.tokenSymbol,

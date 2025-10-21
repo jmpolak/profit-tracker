@@ -1,10 +1,10 @@
 export abstract class DateUtil {
-  static convertDateToString(date: Date): string {
+  static convertDateToString(date: Date) {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
     const year = date.getFullYear();
 
-    return `${day}-${month}-${year}`;
+    return `${day}-${month}-${year}` as string & { __format: 'DD-MM-YYYY' };
   }
 
   static getTodayDate(): string {
@@ -15,7 +15,7 @@ export abstract class DateUtil {
     return `${dd}-${mm}-${yyyy}`;
   }
 
-  static formatDateTime(date: Date): string {
+  static formatDateTime(date: Date) {
     const pad = (n: number) => n.toString().padStart(2, '0');
 
     const day = pad(date.getDate());
@@ -25,6 +25,8 @@ export abstract class DateUtil {
     const hours = pad(date.getHours());
     const minutes = pad(date.getMinutes());
 
-    return `${day}-${month}-${year} ${hours}:${minutes}`;
+    return `${day}-${month}-${year} ${hours}:${minutes}` as string & {
+      __format: 'DD-MM-YYYY hh:mm';
+    };
   }
 }

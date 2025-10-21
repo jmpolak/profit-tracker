@@ -5,5 +5,6 @@ export abstract class IWalletDatabaseRepository extends GenericDataBaseRepositor
   abstract findByAddress(address: string): Promise<Wallet | null>;
   abstract getAllRecentUpdatedTokenSuppliedByWalletAddress(
     walletAddress: string,
+    date?: Date,
   ): Promise<Wallet | null>;
 }

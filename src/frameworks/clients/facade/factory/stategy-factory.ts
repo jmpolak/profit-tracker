@@ -5,19 +5,21 @@ import {
   JupiterGetDailyInformationStrategy,
 } from '../strategy/get-data-strategy';
 import { Injectable } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 
 @Injectable()
 export class StrategyFactory {
-  constructor(
-    private aaveStrategy: AaveGetDailyInformationStrategy,
-    private jupiterStrategy: JupiterGetDailyInformationStrategy,
-  ) {}
+  constructor(private readonly moduleRef: ModuleRef) {}
   create(site: SupportedSites): GetDailyInformationStrategy {
     switch (site) {
       case Sites.AAVE:
-        return this.aaveStrategy;
+        return this.moduleRef.get(AaveGetDailyInformationStrategy, {
+          strict: true,
+        });
       case Sites.JUPITER:
-        return this.jupiterStrategy;
+        return this.moduleRef.get(JupiterGetDailyInformationStrategy, {
+          strict: true,
+        });
       default:
         throw new Error(`Unsupported site: ${site}`);
     }

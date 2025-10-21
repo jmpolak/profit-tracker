@@ -353,13 +353,13 @@
          
          document.querySelectorAll('.remove-wallet-btn').forEach(button => {
          button.addEventListener('click', async (e) => {
-         showLoading('Removing Wallet')
          const walletAddress = e.target.getAttribute('data-address');
          if (!walletAddress) return;
          
          if (!confirm(`Are you sure you want to remove wallet ${walletAddress}?`)) {
            return;
          }
+         showLoading('Removing Wallet')
          
          try {
            const response = await fetch(`/remove-wallet/${walletAddress}`, {
