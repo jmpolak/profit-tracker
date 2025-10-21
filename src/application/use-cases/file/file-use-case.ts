@@ -1,15 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { IExcelFileServicePort } from 'src/core/abstract/excel-file-service/excel-file-service-port';
-import {
-  HistoricalData,
-  Wallet,
-} from 'src/frameworks/database/model/wallet.model';
-import { TransactionsAnalyticUtils } from 'src/application/services/transactions/transactions-analytics-utils';
+import { HistoricalData } from 'src/frameworks/database/model/wallet.model';
 import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
 import { LoggerPort } from 'src/core/abstract/logger-port/logger-port';
 import { IDataBaseRepository } from 'src/core/abstract/database-repository.ts/database-repository';
 import { WalletTokenSupplied } from 'src/application/services/wallet/token-supplied';
 import { DateUtil } from 'src/shared/utils/date';
+import { ProfitUtils } from 'src/application/services/profit/profit-utils';
 
 @Injectable()
 export class FileUseCase {
@@ -82,9 +79,9 @@ export class FileUseCase {
         walletAddress: wallet,
         marketName,
         token,
-        from: `${DateUtil.convertDateToString(data.at(-1)!.date) as DateString}`,
-        to: `${DateUtil.convertDateToString(data.at(0)!.date) as DateString}`,
-        totalProfit: TransactionsAnalyticUtils.getOverallProfit(tokenData),
+        from: `${DateUtil.convertDateToString(data.at(-1)!.date)}`,
+        to: `${DateUtil.convertDateToString(data.at(0)!.date)}`,
+        totalProfit: ProfitUtils.getOverallProfit(tokenData),
       };
 
       if (tokenData.length === 0) {

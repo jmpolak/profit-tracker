@@ -17,8 +17,8 @@ export abstract class ParseUtil {
     return fraction ? `${whole}.${fraction}` : whole;
   }
 
-  static getUsdValue(tokenValue: string, usdPerTokenValue: string): string {
-    return BigNumber(tokenValue)
+  static getUsdValue(tokenBalance: string, usdPerTokenValue: string): string {
+    return BigNumber(tokenBalance)
       .multipliedBy(BigNumber(usdPerTokenValue))
       .toString();
   }

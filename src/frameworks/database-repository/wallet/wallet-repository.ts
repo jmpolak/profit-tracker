@@ -37,16 +37,18 @@ export class WalletDataBaseRepository implements IWalletDatabaseRepository {
 
   async getAllRecentUpdatedTokenSuppliedByWalletAddress(
     walletAddress: string,
+    date?: Date,
   ): Promise<Wallet | null> {
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    const dateForGettingData = date ? date : new Date();
+    dateForGettingData.setDate(dateForGettingData.getDate() - 1);
 
     const wallet: Wallet | null = await this.mongoClient.findOne({
       address: walletAddress,
       'sitesSupplied.suppliedChains.tokens': {
         $elemMatch: {
-          lastUpdate: { $gte: new Date(yesterday.setHours(0, 0, 0, 0)) },
+          lastUpdate: {
+            $gte: new Date(dateForGettingData.setHours(0, 0, 0, 0)),
+          },
         },
       },
     });

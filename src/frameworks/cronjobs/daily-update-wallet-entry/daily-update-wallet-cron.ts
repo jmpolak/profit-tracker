@@ -13,10 +13,9 @@ export class DailyUpdateWalletCronJob {
   @Cron('55 23 * * *')
   async handleCron() {
     try {
-      this.logger.log(
-        `Cron jobs started at ${new Date().toLocaleTimeString()}`,
-      );
-      await this.walletUseCase.updateWallets();
+      const date = new Date();
+      this.logger.log(`Cron jobs started at ${date.toLocaleTimeString()}`);
+      await this.walletUseCase.updateWallets(date);
       this.logger.log(`Cron job ended at ${new Date().toLocaleTimeString()}`);
     } catch (err) {
       this.logger.error(err?.message ?? 'Cron job crashed');
