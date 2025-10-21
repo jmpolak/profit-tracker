@@ -9,8 +9,8 @@ export class DailyUpdateWalletCronJob {
     private walletUseCase: WalletUseCase,
     private logger: LoggerPort,
   ) {}
-  // Runs every day at 23:50 (11:50 PM)
-  @Cron('55 23 * * *')
+  // Runs every day at 23:59 (11:59 PM)
+  @Cron('59 23 * * *')
   async handleCron() {
     try {
       const date = new Date();
