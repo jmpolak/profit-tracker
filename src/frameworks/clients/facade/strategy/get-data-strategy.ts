@@ -78,7 +78,7 @@ export class JupiterGetDailyInformationStrategy
           poolAddress: s.market.poolAddress,
           marketName: s.market.marketName,
           tokenSymbol: s.tokenSymbol,
-          tokenPriceUsd: usdPricesForTokens.get(s.tokenSymbol)!,
+          tokenPriceUsd: usdPricesForTokens.get(s.coinGeckoId)!,
           siteName: s.site,
         },
       );
