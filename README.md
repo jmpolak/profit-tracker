@@ -17,21 +17,18 @@ Profit Tracker is a project to track your wallet on Aave. It will track your sup
 
 ## Environment Variables
 
-Before starting the application, create a `.env` file in the project root directory. This file is required to store environment-specific settings, such as RPC URLs and API keys.
+Before starting the application, create a `.env` file in the project root directory. This file is required to store an solana rpc url.
 
 Example `.env` file:
 
 ```bash
 SOLANA-RPC-URL-WITH-OR-WITHOUT-KEY=https://mainnet.helius-rpc.com/?api-key={api-key}
-```
-
 or
-
-```bash
 SOLANA-RPC-URL-WITH-OR-WITHOUT-KEY=https://api.mainnet-beta.solana.com
 ```
 
-Make sure **not** to commit your `.env` file to version control for security reasons.
+
+Make sure to adjust the SolanaRpc class to the rpc endpoint rate limits.
 
 ## Start
 
