@@ -6,10 +6,10 @@ export type LendingToken = {
   underlyingAssets: string;
 };
 
-export type SuppliedTokensBalanceWithUnderlayingAssetAddressAndCeckoId =
+export type SuppliedTokensBalanceWithUnderlayingAssetAdditionalData =
   SuppliedTokensBalance & {
     underlyingAssetAddress: string;
-    coinGeckoId: string;
+    usdPricerPerToken: string;
   };
 
 type Asset = {

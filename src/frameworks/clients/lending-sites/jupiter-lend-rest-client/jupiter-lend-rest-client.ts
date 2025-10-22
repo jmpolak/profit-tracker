@@ -3,7 +3,7 @@ import { ILendingRestClient } from 'src/frameworks/clients/lending-sites/lending
 import { Sites, SupportedSites } from 'src/core/entity/site';
 import {
   LendingToken,
-  SuppliedTokensBalanceWithUnderlayingAssetAddressAndCeckoId,
+  SuppliedTokensBalanceWithUnderlayingAssetAdditionalData,
 } from './types';
 import { ParseUtil } from '../parse-utils';
 import { StringUtil } from 'src/shared/utils/convert-string';
@@ -18,29 +18,35 @@ export class JupiterLendRestClient implements ILendingRestClient {
 
   async getCurrentBalanceOfSuppliedTokens(
     userAddress: string,
-  ): Promise<SuppliedTokensBalanceWithUnderlayingAssetAddressAndCeckoId[]> {
+  ): Promise<SuppliedTokensBalanceWithUnderlayingAssetAdditionalData[]> {
     const data = await fetch(
       `${this.baseUrl}lend/v1/earn/positions?users=${userAddress}`,
     );
     const lendingTokensData = (await data.json()) as LendingToken[];
     return lendingTokensData
       .filter((ltd) => ltd.underlyingAssets !== '0')
-      .map((ltd) => ({
-        market: {
-          poolAddress: ltd.token.address,
-          marketName: StringUtil.removeWhiteSpaces(ltd.token.name),
-          chainName: ltd.token.asset.chainId,
-        },
-        balance: ParseUtil.divideTokenAmount(
+      .map((ltd) => {
+        const tokenBalance = ParseUtil.divideTokenAmount(
           ltd.underlyingAssets,
           ltd.token.decimals,
-        ),
-        balanceInUsd: '0', // it will be set later in func getDailyPositionInformation;
-        tokenSymbol: ltd.token.asset.symbol,
-        site: this.SITE_NAME,
-        underlyingAssetAddress: ltd.token.assetAddress,
-        coinGeckoId: ltd.token.asset.coingeckoId,
-      }));
+        );
+        return {
+          market: {
+            poolAddress: ltd.token.address,
+            marketName: StringUtil.removeWhiteSpaces(ltd.token.name),
+            chainName: ltd.token.asset.chainId,
+          },
+          balance: tokenBalance,
+          balanceInUsd: ParseUtil.getUsdValue(
+            tokenBalance,
+            ltd.token.asset.price,
+          ),
+          tokenSymbol: ltd.token.asset.symbol,
+          site: this.SITE_NAME,
+          underlyingAssetAddress: ltd.token.assetAddress,
+          usdPricerPerToken: ltd.token.asset.price,
+        };
+      });
   }
 
   public async getMarkets() {

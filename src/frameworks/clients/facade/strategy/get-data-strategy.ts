@@ -1,9 +1,7 @@
 import { DailyPositionsInformation } from 'src/core/entity/daily-position-information';
 import { JupiterLendRestClient } from '../../lending-sites/jupiter-lend-rest-client/jupiter-lend-rest-client';
 import { UserTransaction } from 'src/core/entity/transaction';
-import { ParseUtil } from '../../lending-sites/parse-utils';
 import { SolanaRpc } from '../../rpc/solana/solana-rpc';
-import { CoingeckoPriceApi } from '../../coingecko-price-api/coingecko-price-api';
 import { AaveRestClient } from '../../lending-sites/aave-rest-client/aave-rest-client';
 import { ILendingRestClient } from 'src/frameworks/clients/lending-sites/lending-rest-client';
 import { Injectable } from '@nestjs/common';
@@ -45,7 +43,6 @@ export class JupiterGetDailyInformationStrategy
   constructor(
     public readonly client: JupiterLendRestClient,
     private connection: SolanaRpc,
-    private priceApi: CoingeckoPriceApi,
   ) {}
 
   public isExecutable(walletAddress: string) {
@@ -56,19 +53,6 @@ export class JupiterGetDailyInformationStrategy
     wallet: string,
   ): Promise<DailyPositionsInformation> {
     const supply = await this.client.getCurrentBalanceOfSuppliedTokens(wallet);
-
-    const usdPricesForTokens = await this.priceApi.getUsdPrices(
-      supply.map((s) => s.coinGeckoId),
-    );
-
-    supply.forEach(
-      (s) =>
-        (s.balanceInUsd = ParseUtil.getUsdValue(
-          s.balance,
-          usdPricesForTokens.get(s.coinGeckoId) ?? '0',
-        )),
-    );
-
     const userTransactions: UserTransaction[] = [];
     for (const s of supply) {
       const transactions = await this.connection.getTransactionsFromRpc(
@@ -78,12 +62,12 @@ export class JupiterGetDailyInformationStrategy
           poolAddress: s.market.poolAddress,
           marketName: s.market.marketName,
           tokenSymbol: s.tokenSymbol,
-          tokenPriceUsd: usdPricesForTokens.get(s.coinGeckoId)!,
+          tokenPriceUsd: s.usdPricerPerToken,
           siteName: s.site,
         },
       );
       userTransactions.push(...transactions);
     }
-    return { supply: supply, userTransactions };
+    return { supply, userTransactions };
   }
 }
