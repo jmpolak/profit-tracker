@@ -1,12 +1,13 @@
 import { TransactionType, UserTransaction } from 'src/core/entity/transaction';
 import { BigNumber } from 'bignumber.js';
+import { ImmutableDate } from 'src/core/entity/immutable-date';
 export abstract class TransactionsAnalyticUtils {
   static filterTransactionsByDateAndByTokenSymbol(
     transactions: UserTransaction[],
     tokenSymbol: string,
     poolAddress: string,
     marketName: string,
-    date: Date = new Date(),
+    date: ImmutableDate,
   ) {
     const year = date.getFullYear();
     const month = date.getMonth();

@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { IWalletDatabaseRepository } from 'src/core/abstract/database-repository.ts/wallet-repository/wallet-database-repository';
+import { ImmutableDate } from 'src/core/entity/immutable-date';
 
 @Injectable()
 export class WalletDataBaseRepository implements IWalletDatabaseRepository {
@@ -37,9 +38,9 @@ export class WalletDataBaseRepository implements IWalletDatabaseRepository {
 
   async getAllRecentUpdatedTokenSuppliedByWalletAddress(
     walletAddress: string,
-    date?: Date,
+    date: ImmutableDate,
   ): Promise<Wallet | null> {
-    const dateForGettingData = date ? date : new Date();
+    const dateForGettingData = date ? new Date(+date) : new Date();
     dateForGettingData.setDate(dateForGettingData.getDate() - 1);
 
     const wallet: Wallet | null = await this.mongoClient.findOne({

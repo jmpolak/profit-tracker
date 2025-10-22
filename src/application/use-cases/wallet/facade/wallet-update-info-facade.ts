@@ -9,6 +9,7 @@ import {
 import { Wallet } from 'src/frameworks/database/model/wallet.model';
 import { IDailyInfoFetcherFacade } from 'src/core/abstract/daily-info-facade/daily-info-facade';
 import { ProfitUtils } from 'src/application/services/profit/profit-utils';
+import { ImmutableDate } from 'src/core/entity/immutable-date';
 @Injectable()
 export class WalletUpdateDailyInformationFacade {
   constructor(
@@ -18,7 +19,7 @@ export class WalletUpdateDailyInformationFacade {
   async getDailySupplyInformation(
     wallet: Wallet,
     onWalletCreation: boolean,
-    date?: Date,
+    date: ImmutableDate,
   ): Promise<DailyPositionInformationForOnePosition[]> {
     const result: DailyPositionInformationForOnePosition[] = [];
     const dailyInformation = (

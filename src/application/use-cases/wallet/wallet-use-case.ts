@@ -8,6 +8,7 @@ import { IDataBaseRepository } from 'src/core/abstract/database-repository.ts/da
 import { WalletTokenSupplied } from 'src/application/services/wallet/token-supplied';
 import { WalletUpdateDailyInformationFacade } from './facade/wallet-update-info-facade';
 import { DailyPositionInformationForOnePosition } from 'src/core/entity/daily-position-information';
+import { ImmutableDate } from 'src/core/entity/immutable-date';
 
 @Injectable()
 export class WalletUseCase {
@@ -26,6 +27,7 @@ export class WalletUseCase {
         sitesSupplied: [],
       },
       false,
+      new Date(),
     );
     return test;
   }
@@ -39,12 +41,13 @@ export class WalletUseCase {
   async createWallet(walletAddress: string) {
     try {
       await WalletValidator.assertValid(walletAddress, this.databaseRepository);
-      const wallet =
-        await this.databaseRepository.walletDataBaseRepository.createOrUpdate({
+      await this.createOrUpdateWallet(
+        {
           address: walletAddress,
           sitesSupplied: [],
-        });
-      await this.updateWallet(wallet, true);
+        },
+        true,
+      );
       return true;
     } catch (err) {
       this.logger.error(
@@ -75,13 +78,13 @@ export class WalletUseCase {
     }
   }
 
-  async updateWallets(date?: Date) {
+  async updateWallets(date: ImmutableDate) {
     try {
       const allWallets =
         await this.databaseRepository.walletDataBaseRepository.findAll();
       await Promise.allSettled(
         allWallets.map(async (wallet) => {
-          return this.updateWallet(wallet, false, date);
+          return this.createOrUpdateWallet(wallet, false, date);
         }),
       );
     } catch (err) {
@@ -107,10 +110,10 @@ export class WalletUseCase {
     }
   }
 
-  private async updateWallet(
+  private async createOrUpdateWallet(
     wallet: Wallet,
     onWalletCreation: boolean,
-    date?: Date,
+    date: ImmutableDate = new Date() as ImmutableDate,
   ) {
     try {
       const supplyInfo = await this.walletFacade.getDailySupplyInformation(
@@ -119,12 +122,7 @@ export class WalletUseCase {
         date,
       );
 
-      await this.handleWalletEntry(
-        wallet.address,
-        supplyInfo,
-        onWalletCreation,
-        date,
-      );
+      await this.handleWalletEntry(wallet, supplyInfo, onWalletCreation, date);
     } catch (err) {
       this.logger.error(
         err?.message ?? `Error updating wallet: ${wallet.address}`,
@@ -136,18 +134,15 @@ export class WalletUseCase {
   }
   private async handleWalletEntry(
     // only in cron job we should make db updates
-    userAddress: string,
+    wallet: Wallet,
     dailyInfo: DailyPositionInformationForOnePosition[],
-    onWalletCreation?: boolean,
-    date?: Date,
+    onWalletCreation: boolean,
+    date: ImmutableDate,
   ) {
     try {
-      let wallet =
-        await this.databaseRepository.walletDataBaseRepository.findByAddress(
-          userAddress,
-        );
-
-      const checkIfLastUpdateWasAlreadyMade = (lastUpdate: Date): boolean => {
+      const checkIfLastUpdateWasAlreadyMade = (
+        lastUpdate: ImmutableDate,
+      ): boolean => {
         const today = date ? date : new Date();
         return (
           lastUpdate.getDate() === today.getDate() &&
@@ -155,16 +150,6 @@ export class WalletUseCase {
           lastUpdate.getFullYear() === today.getFullYear()
         );
       };
-      if (!wallet) {
-        // should not happen, because in order to download suppliedTokens wallet should be in db
-        wallet =
-          await this.databaseRepository.walletDataBaseRepository.createOrUpdate(
-            {
-              address: userAddress,
-              sitesSupplied: [],
-            },
-          );
-      }
 
       // check if token on a site was already updated today
       for (const info of dailyInfo) {
@@ -186,7 +171,7 @@ export class WalletUseCase {
             );
             if (wasToday) {
               this.logger.warn(
-                `Wallet entry for address ${userAddress} and token ${tokenSupplied.currency} was already updated today. Skipping update to avoid duplicates.`,
+                `Wallet entry for address ${wallet.address} and token ${tokenSupplied.currency} was already updated today. Skipping update to avoid duplicates.`,
               );
               continue; // Skip to the next token if already updated today
             }
@@ -199,7 +184,7 @@ export class WalletUseCase {
           ),
         );
 
-        const dateForInsert = date ? date : new Date();
+        const dateForInsert = date ? new Date(+date) : new Date();
 
         const createToken = () => ({
           currency: info.supply.tokenSymbol,
@@ -282,7 +267,7 @@ export class WalletUseCase {
       );
     } catch (err) {
       throw new Error(
-        err?.message ?? `Error handling wallet entry for ${userAddress}`,
+        err?.message ?? `Error handling wallet entry for ${wallet.address}`,
       );
     }
   }
