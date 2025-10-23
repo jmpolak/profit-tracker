@@ -30,7 +30,9 @@ export abstract class TransactionsAnalyticUtils {
       return (
         txDate.getFullYear() === year &&
         txDate.getMonth() === month &&
-        txDate.getDate() === dayOfMonth
+        txDate.getDate() === dayOfMonth &&
+        // is after from
+        (!from || from.getTime() < txDate.getTime())
       );
     });
   }
