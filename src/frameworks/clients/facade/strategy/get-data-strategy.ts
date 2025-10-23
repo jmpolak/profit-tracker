@@ -12,6 +12,7 @@ export interface GetDailyInformationStrategy {
   isExecutable(wallet: string): boolean;
   getDailyPositionInformation(
     wallet: string,
+    poolAddresses?: string[],
   ): Promise<DailyPositionsInformation>;
 }
 
@@ -51,8 +52,12 @@ export class JupiterGetDailyInformationStrategy
 
   async getDailyPositionInformation(
     wallet: string,
+    poolAddresses: string[],
   ): Promise<DailyPositionsInformation> {
-    const supply = await this.client.getCurrentBalanceOfSuppliedTokens(wallet);
+    const supply = await this.client.getCurrentBalanceOfSuppliedTokens(
+      wallet,
+      poolAddresses,
+    );
     const userTransactions: UserTransaction[] = [];
     for (const s of supply) {
       const transactions = await this.connection.getTransactionsFromRpc(

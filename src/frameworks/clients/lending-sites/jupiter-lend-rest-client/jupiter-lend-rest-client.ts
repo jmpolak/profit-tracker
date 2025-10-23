@@ -18,13 +18,18 @@ export class JupiterLendRestClient implements ILendingRestClient {
 
   async getCurrentBalanceOfSuppliedTokens(
     userAddress: string,
+    poolAddresses?: string[],
   ): Promise<SuppliedTokensBalanceWithUnderlayingAssetAdditionalData[]> {
     const data = await fetch(
       `${this.baseUrl}lend/v1/earn/positions?users=${userAddress}`,
     );
     const lendingTokensData = (await data.json()) as LendingToken[];
     return lendingTokensData
-      .filter((ltd) => ltd.underlyingAssets !== '0')
+      .filter(
+        (ltd) =>
+          ltd.underlyingAssets !== '0' ||
+          poolAddresses?.includes(ltd.token.address),
+      )
       .map((ltd) => {
         const tokenBalance = ParseUtil.divideTokenAmount(
           ltd.underlyingAssets,
@@ -47,11 +52,5 @@ export class JupiterLendRestClient implements ILendingRestClient {
           usdPricerPerToken: ltd.token.asset.price,
         };
       });
-  }
-
-  public async getMarkets() {
-    const supply = await this.getCurrentBalanceOfSuppliedTokens(
-      'BAGbqJ9SerqSFeZzkFvKumhnH64G6s2PTW2VWc5MTpYG',
-    );
   }
 }

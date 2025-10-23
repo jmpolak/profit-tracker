@@ -1,4 +1,7 @@
-import { Wallet } from 'src/frameworks/database/model/wallet.model';
+import {
+  SuppliedSite,
+  Wallet,
+} from 'src/frameworks/database/model/wallet.model';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
@@ -36,23 +39,63 @@ export class WalletDataBaseRepository implements IWalletDatabaseRepository {
     return wallet;
   }
 
-  async getAllRecentUpdatedTokenSuppliedByWalletAddress(
+  async getSitesRecentUpdatedTokensByWalletAddress(
     walletAddress: string,
     date: ImmutableDate,
-  ): Promise<Wallet | null> {
+  ): Promise<SuppliedSite[]> {
     const dateForGettingData = date ? new Date(+date) : new Date();
     dateForGettingData.setDate(dateForGettingData.getDate() - 1);
+    const startOfDay = new Date(dateForGettingData.setHours(0, 0, 0, 0));
 
-    const wallet: Wallet | null = await this.mongoClient.findOne({
-      address: walletAddress,
-      'sitesSupplied.suppliedChains.tokens': {
-        $elemMatch: {
-          lastUpdate: {
-            $gte: new Date(dateForGettingData.setHours(0, 0, 0, 0)),
+    const result: SuppliedSite[] = await this.mongoClient.aggregate([
+      // Match wallet
+      { $match: { address: walletAddress } },
+
+      // Unwind sitesSupplied to process each site
+      { $unwind: '$sitesSupplied' },
+
+      // Unwind suppliedChains to filter tokens
+      { $unwind: '$sitesSupplied.suppliedChains' },
+
+      // Keep only tokens updated since yesterday
+      {
+        $addFields: {
+          'sitesSupplied.suppliedChains.tokens': {
+            $filter: {
+              input: '$sitesSupplied.suppliedChains.tokens',
+              as: 'token',
+              cond: { $gte: ['$$token.lastUpdate', startOfDay] },
+            },
           },
         },
       },
-    });
-    return wallet ?? null;
+
+      // Remove chains with no recent tokens
+      {
+        $match: { 'sitesSupplied.suppliedChains.tokens.0': { $exists: true } },
+      },
+
+      // Group chains back under each site
+      {
+        $group: {
+          _id: '$sitesSupplied.name', // group by site name
+          suppliedChains: { $push: '$sitesSupplied.suppliedChains' },
+        },
+      },
+
+      // Restore the site object structure
+      {
+        $project: {
+          _id: 0,
+          name: '$_id',
+          suppliedChains: 1,
+        },
+      },
+
+      // Optional: sort by site name
+      { $sort: { name: 1 } },
+    ]);
+
+    return result;
   }
 }
