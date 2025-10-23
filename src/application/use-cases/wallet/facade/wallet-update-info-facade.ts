@@ -103,11 +103,8 @@ export class WalletUpdateDailyInformationFacade {
           date,
           // if update was made today (by create event, only get todays trx after the creation time)
           ...(tokenSupplied &&
-          DateUtil.checkIfLastUpdateWasAlreadyMade(
-            tokenSupplied.lastUpdate,
-            date,
-          )
-            ? [tokenSupplied?.lastUpdate]
+          tokenSupplied.historicalData?.at(0)?.createdByCreateWalletEvent
+            ? [tokenSupplied.lastUpdate]
             : [undefined]),
         );
 
