@@ -154,7 +154,7 @@ export class WalletUseCase {
             info.supply.site,
           );
         if (tokenSupplied) {
-          const lastFileData = tokenSupplied.historicalData.at(-1);
+          const lastFileData = tokenSupplied.historicalData.at(0);
           if (lastFileData && !lastFileData.createdByCreateWalletEvent) {
             const wasToday = DateUtil.checkIfLastUpdateWasAlreadyMade(
               tokenSupplied.lastUpdate,

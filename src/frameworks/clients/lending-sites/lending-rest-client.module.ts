@@ -11,10 +11,10 @@ export const LENDING_REST_CLIENTS = 'LENDING_REST_CLIENT';
     {
       provide: LENDING_REST_CLIENTS,
       useFactory: (
-        aave: AaveRestClient,
         jupiter: JupiterLendRestClient,
-      ): ILendingRestClient[] => [aave, jupiter],
-      inject: [AaveRestClient, JupiterLendRestClient],
+        aave: AaveRestClient,
+      ): ILendingRestClient[] => [jupiter, aave],
+      inject: [JupiterLendRestClient, AaveRestClient],
     },
   ],
   exports: [LENDING_REST_CLIENTS, AaveRestClient, JupiterLendRestClient],
