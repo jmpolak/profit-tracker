@@ -37,7 +37,11 @@ export class WalletUpdateDailyInformationFacade {
       ) ?? [];
 
     const dailyInformation = (
-      await this.dailyInfoFetcher.execute(wallet.address, poolAddresses)
+      await this.dailyInfoFetcher.execute(
+        wallet.address,
+        !onWalletCreation, // on wallet creation we dont need to get transactions
+        poolAddresses,
+      )
     ).reduce(
       (acc, obj) => ({
         supply: [...acc.supply, ...obj.supply],
@@ -47,10 +51,6 @@ export class WalletUpdateDailyInformationFacade {
     );
 
     let { supply, userTransactions } = dailyInformation;
-
-    if (onWalletCreation) {
-      userTransactions = []; // track transactions from the creation event date
-    }
 
     for (const site of suppliedSitesWithRecentUpdatedTokens) {
       for (const chain of site.suppliedChains ?? []) {

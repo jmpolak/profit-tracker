@@ -13,13 +13,20 @@ export class DailyLendingDataFetcherFacade implements IDailyInfoFetcherFacade {
 
   async execute(
     wallet: string,
+    returnTransactions: boolean,
     poolAddresses: string[],
   ): Promise<DailyPositionsInformation[]> {
     return await Promise.all(
       this.lendingRestClient
         .map((lrc) => this.strategyFactory.create(lrc.SITE_NAME))
         .filter((s) => s.isExecutable(wallet))
-        .map((s) => s.getDailyPositionInformation(wallet, poolAddresses)),
+        .map((s) =>
+          s.getDailyPositionInformation(
+            wallet,
+            returnTransactions,
+            poolAddresses,
+          ),
+        ),
     );
   }
 }

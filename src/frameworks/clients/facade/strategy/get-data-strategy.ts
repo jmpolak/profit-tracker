@@ -12,6 +12,7 @@ export interface GetDailyInformationStrategy {
   isExecutable(wallet: string): boolean;
   getDailyPositionInformation(
     wallet: string,
+    returnTransactions: boolean,
     poolAddresses?: string[],
   ): Promise<DailyPositionsInformation>;
 }
@@ -27,11 +28,13 @@ export class AaveGetDailyInformationStrategy
   }
   async getDailyPositionInformation(
     wallet: string,
+    returnTransactions: boolean,
   ): Promise<DailyPositionsInformation> {
     const currentSuppliedPositions =
       await this.client.getCurrentBalanceOfSuppliedTokens(wallet);
-    const userTransactions =
-      await this.client.getTransactionsOnAllChains(wallet);
+    const userTransactions = returnTransactions
+      ? await this.client.getTransactionsOnAllChains(wallet)
+      : [];
 
     return { supply: currentSuppliedPositions, userTransactions };
   }
@@ -43,7 +46,7 @@ export class JupiterGetDailyInformationStrategy
 {
   constructor(
     public readonly client: JupiterLendRestClient,
-    private connection: SolanaRpc,
+    private rpc: SolanaRpc,
   ) {}
 
   public isExecutable(walletAddress: string) {
@@ -52,6 +55,7 @@ export class JupiterGetDailyInformationStrategy
 
   async getDailyPositionInformation(
     wallet: string,
+    returnTransactions: boolean,
     poolAddresses: string[],
   ): Promise<DailyPositionsInformation> {
     const supply = await this.client.getCurrentBalanceOfSuppliedTokens(
@@ -59,19 +63,21 @@ export class JupiterGetDailyInformationStrategy
       poolAddresses,
     );
     const userTransactions: UserTransaction[] = [];
-    for (const s of supply) {
-      const transactions = await this.connection.getTransactionsFromRpc(
-        wallet,
-        s.underlyingAssetAddress,
-        {
-          poolAddress: s.market.poolAddress,
-          marketName: s.market.marketName,
-          tokenSymbol: s.tokenSymbol,
-          tokenPriceUsd: s.usdPricerPerToken,
-          siteName: s.site,
-        },
-      );
-      userTransactions.push(...transactions);
+    if (returnTransactions) {
+      for (const s of supply) {
+        const transactions = await this.rpc.getTransactionsFromRpc(
+          wallet,
+          s.underlyingAssetAddress,
+          {
+            poolAddress: s.market.poolAddress,
+            marketName: s.market.marketName,
+            tokenSymbol: s.tokenSymbol,
+            tokenPriceUsd: s.usdPricerPerToken,
+            siteName: s.site,
+          },
+        );
+        userTransactions.push(...transactions);
+      }
     }
     return { supply, userTransactions };
   }
