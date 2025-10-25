@@ -18,7 +18,7 @@ export class JupiterLendRestClient implements ILendingRestClient {
 
   async getCurrentBalanceOfSuppliedTokens(
     userAddress: string,
-    poolAddresses?: string[],
+    poolAddresses: string[],
   ): Promise<SuppliedTokensBalanceWithUnderlayingAssetAdditionalData[]> {
     const data = await fetch(
       `${this.baseUrl}lend/v1/earn/positions?users=${userAddress}`,
