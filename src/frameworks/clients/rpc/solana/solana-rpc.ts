@@ -60,7 +60,7 @@ export class SolanaRpc extends Connection {
           );
           resultTrx ? result.push(resultTrx) : undefined;
         }
-        // await TimeUtil.delay(500);
+        await TimeUtil.delay(500);
       }
 
       await TimeUtil.delay(500); // throttle

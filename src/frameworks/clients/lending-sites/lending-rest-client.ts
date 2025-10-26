@@ -5,6 +5,6 @@ export abstract class ILendingRestClient {
   readonly SITE_NAME: SupportedSites;
   abstract getCurrentBalanceOfSuppliedTokens(
     userAddress: string,
+    poolAddress?: string[],
   ): Promise<SuppliedTokensBalance[]>;
-  abstract getMarkets(); // remove it
 }

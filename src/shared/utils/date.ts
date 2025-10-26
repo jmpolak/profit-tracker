@@ -1,4 +1,17 @@
+import { ImmutableDate } from 'src/core/entity/immutable-date';
+
 export abstract class DateUtil {
+  static checkIfLastUpdateWasAlreadyMade = (
+    lastUpdate: ImmutableDate,
+    dateForCheck: ImmutableDate,
+  ): boolean => {
+    return (
+      lastUpdate.getDate() === dateForCheck.getDate() &&
+      lastUpdate.getMonth() === dateForCheck.getMonth() &&
+      lastUpdate.getFullYear() === dateForCheck.getFullYear()
+    );
+  };
+
   static convertDateToString(date: Date) {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed

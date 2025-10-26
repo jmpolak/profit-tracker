@@ -11,12 +11,22 @@ export class DailyLendingDataFetcherFacade implements IDailyInfoFetcherFacade {
   private lendingRestClient: ILendingRestClient[];
   constructor(private strategyFactory: StrategyFactory) {}
 
-  async execute(wallet: string): Promise<DailyPositionsInformation[]> {
+  async execute(
+    wallet: string,
+    returnTransactions: boolean,
+    poolAddresses: string[],
+  ): Promise<DailyPositionsInformation[]> {
     return await Promise.all(
       this.lendingRestClient
         .map((lrc) => this.strategyFactory.create(lrc.SITE_NAME))
         .filter((s) => s.isExecutable(wallet))
-        .map((s) => s.getDailyPositionInformation(wallet)),
+        .map((s) =>
+          s.getDailyPositionInformation(
+            wallet,
+            returnTransactions,
+            poolAddresses,
+          ),
+        ),
     );
   }
 }

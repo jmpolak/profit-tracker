@@ -9,6 +9,7 @@ import { WalletTokenSupplied } from 'src/application/services/wallet/token-suppl
 import { WalletUpdateDailyInformationFacade } from './facade/wallet-update-info-facade';
 import { DailyPositionInformationForOnePosition } from 'src/core/entity/daily-position-information';
 import { ImmutableDate } from 'src/core/entity/immutable-date';
+import { DateUtil } from 'src/shared/utils/date';
 
 @Injectable()
 export class WalletUseCase {
@@ -20,14 +21,15 @@ export class WalletUseCase {
 
   //@ToDo: remove it
   async test() {
-    // const wallet = await this.getWalletData('BAGbqJ9SerqSFeZzkFvKumhnH64G6s2PTW2VWc5MTpYG')
+    // const date = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const date = new Date();
     const test = await this.walletFacade.getDailySupplyInformation(
       {
         address: '0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf',
         sitesSupplied: [],
       },
       false,
-      new Date(),
+      date,
     );
     return test;
   }
@@ -133,24 +135,12 @@ export class WalletUseCase {
     }
   }
   private async handleWalletEntry(
-    // only in cron job we should make db updates
     wallet: Wallet,
     dailyInfo: DailyPositionInformationForOnePosition[],
     onWalletCreation: boolean,
     date: ImmutableDate,
   ) {
     try {
-      const checkIfLastUpdateWasAlreadyMade = (
-        lastUpdate: ImmutableDate,
-      ): boolean => {
-        const today = date ? date : new Date();
-        return (
-          lastUpdate.getDate() === today.getDate() &&
-          lastUpdate.getMonth() === today.getMonth() &&
-          lastUpdate.getFullYear() === today.getFullYear()
-        );
-      };
-
       // check if token on a site was already updated today
       for (const info of dailyInfo) {
         const tokenSupplied =
@@ -164,10 +154,11 @@ export class WalletUseCase {
             info.supply.site,
           );
         if (tokenSupplied) {
-          const lastFileData = tokenSupplied.historicalData.at(-1);
+          const lastFileData = tokenSupplied.historicalData.at(0);
           if (lastFileData && !lastFileData.createdByCreateWalletEvent) {
-            const wasToday = checkIfLastUpdateWasAlreadyMade(
+            const wasToday = DateUtil.checkIfLastUpdateWasAlreadyMade(
               tokenSupplied.lastUpdate,
+              date,
             );
             if (wasToday) {
               this.logger.warn(
@@ -180,7 +171,7 @@ export class WalletUseCase {
 
         info.userTransactions.forEach((tx) =>
           this.logger.log(
-            `Transaction: ${tx.txHash}, Time: ${tx.timestamp} will be handled`,
+            `Transaction: ${tx.txHash}, Time: ${tx.timestamp} will be handled for wallet ${wallet.address}`,
           ),
         );
 

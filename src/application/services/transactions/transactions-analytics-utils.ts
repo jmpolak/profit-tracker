@@ -2,12 +2,24 @@ import { TransactionType, UserTransaction } from 'src/core/entity/transaction';
 import { BigNumber } from 'bignumber.js';
 import { ImmutableDate } from 'src/core/entity/immutable-date';
 export abstract class TransactionsAnalyticUtils {
-  static filterTransactionsByDateAndByTokenSymbol(
+  static filterTransactionsByToken(
     transactions: UserTransaction[],
     tokenSymbol: string,
     poolAddress: string,
     marketName: string,
+  ) {
+    return transactions.filter(
+      (tx) =>
+        tx.tokenSymbol.equalsIgnore(tokenSymbol) &&
+        tx.poolAddress.equalsIgnore(poolAddress) &&
+        tx.marketName.equalsIgnore(marketName),
+    );
+  }
+
+  static filterTransactionsByDate(
+    transactions: UserTransaction[],
     date: ImmutableDate,
+    from?: ImmutableDate,
   ) {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -19,9 +31,8 @@ export abstract class TransactionsAnalyticUtils {
         txDate.getFullYear() === year &&
         txDate.getMonth() === month &&
         txDate.getDate() === dayOfMonth &&
-        tx.tokenSymbol.equalsIgnore(tokenSymbol) &&
-        tx.poolAddress.equalsIgnore(poolAddress) &&
-        tx.marketName.equalsIgnore(marketName)
+        // is after from
+        (!from || from.getTime() < txDate.getTime())
       );
     });
   }

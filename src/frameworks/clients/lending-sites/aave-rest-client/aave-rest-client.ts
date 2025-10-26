@@ -114,10 +114,4 @@ export class AaveRestClient implements ILendingRestClient {
     });
     return suppliedPositions;
   }
-
-  public async getMarkets() {
-    return this.getCurrentBalanceOfSuppliedTokens(
-      '0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf',
-    );
-  }
 }

@@ -10,6 +10,7 @@ import { Wallet } from 'src/frameworks/database/model/wallet.model';
 import { IDailyInfoFetcherFacade } from 'src/core/abstract/daily-info-facade/daily-info-facade';
 import { ProfitUtils } from 'src/application/services/profit/profit-utils';
 import { ImmutableDate } from 'src/core/entity/immutable-date';
+import { DateUtil } from 'src/shared/utils/date';
 @Injectable()
 export class WalletUpdateDailyInformationFacade {
   constructor(
@@ -22,8 +23,25 @@ export class WalletUpdateDailyInformationFacade {
     date: ImmutableDate,
   ): Promise<DailyPositionInformationForOnePosition[]> {
     const result: DailyPositionInformationForOnePosition[] = [];
+
+    const suppliedSitesWithRecentUpdatedTokens =
+      await this.databaseRepository.walletDataBaseRepository.getSitesRecentUpdatedTokensByWalletAddress(
+        wallet.address,
+        date,
+      );
+    // needed for solana rpc - filter for transactions with involved addresses
+    // if wallet withdrawed everything we will not get transactions for it
+    const poolAddresses =
+      suppliedSitesWithRecentUpdatedTokens?.flatMap((site) =>
+        site.suppliedChains?.map((chain) => chain.poolAddress),
+      ) ?? [];
+
     const dailyInformation = (
-      await this.dailyInfoFetcher.execute(wallet.address)
+      await this.dailyInfoFetcher.execute(
+        wallet.address,
+        !onWalletCreation, // on wallet creation we dont need to get transactions
+        poolAddresses,
+      )
     ).reduce(
       (acc, obj) => ({
         supply: [...acc.supply, ...obj.supply],
@@ -32,43 +50,37 @@ export class WalletUpdateDailyInformationFacade {
       { supply: [], userTransactions: [] } as DailyPositionsInformation,
     );
 
-    const walletWithRecentUpdatedTokenSupplies =
-      await this.databaseRepository.walletDataBaseRepository.getAllRecentUpdatedTokenSuppliedByWalletAddress(
-        wallet.address,
-        date,
-      );
-    const { supply, userTransactions } = dailyInformation;
+    let { supply, userTransactions } = dailyInformation;
 
-    if (walletWithRecentUpdatedTokenSupplies?.sitesSupplied?.length) {
-      for (const site of walletWithRecentUpdatedTokenSupplies.sitesSupplied) {
-        for (const chain of site.suppliedChains ?? []) {
-          for (const token of chain.tokens ?? []) {
-            // If token currency is missing from supply, add zero balances
-            if (
-              WalletTokenSupplied.hasSuppliedTokenBalance(token) &&
-              !supply.find(
-                (csp) =>
-                  csp.market.poolAddress.equalsIgnore(chain.poolAddress) &&
-                  csp.market.marketName.equalsIgnore(chain.marketName) &&
-                  csp.tokenSymbol.equalsIgnore(token.currency),
-              )
-            ) {
-              supply.push({
-                market: {
-                  poolAddress: chain.poolAddress,
-                  chainName: chain.chainName,
-                  marketName: chain.marketName,
-                },
-                site: site.name,
-                balance: '0',
-                balanceInUsd: '0',
-                tokenSymbol: token.currency,
-              });
-            }
+    for (const site of suppliedSitesWithRecentUpdatedTokens) {
+      for (const chain of site.suppliedChains ?? []) {
+        for (const token of chain.tokens ?? []) {
+          // If token currency is missing from supply, add zero balances
+          if (
+            WalletTokenSupplied.hasSuppliedTokenBalance(token) &&
+            !supply.find(
+              (csp) =>
+                csp.market.poolAddress.equalsIgnore(chain.poolAddress) &&
+                csp.market.marketName.equalsIgnore(chain.marketName) &&
+                csp.tokenSymbol.equalsIgnore(token.currency),
+            )
+          ) {
+            supply.push({
+              market: {
+                poolAddress: chain.poolAddress,
+                chainName: chain.chainName,
+                marketName: chain.marketName,
+              },
+              site: site.name,
+              balance: '0',
+              balanceInUsd: '0',
+              tokenSymbol: token.currency,
+            });
           }
         }
       }
     }
+
     for (const stb of supply) {
       const tokenSupplied = WalletTokenSupplied.getTokenSuppliedTokenFromWallet(
         wallet,
@@ -79,13 +91,21 @@ export class WalletUpdateDailyInformationFacade {
         stb.tokenSymbol,
         stb.site,
       );
+
       const currentDayTransactionsByToken =
-        TransactionsAnalyticUtils.filterTransactionsByDateAndByTokenSymbol(
-          userTransactions,
-          stb.tokenSymbol,
-          stb.market.poolAddress,
-          stb.market.marketName,
+        TransactionsAnalyticUtils.filterTransactionsByDate(
+          TransactionsAnalyticUtils.filterTransactionsByToken(
+            userTransactions,
+            stb.tokenSymbol,
+            stb.market.poolAddress,
+            stb.market.marketName,
+          ),
           date,
+          // if update was made today (by create event, only get todays trx after the creation time)
+          ...(tokenSupplied &&
+          tokenSupplied.historicalData?.at(0)?.createdByCreateWalletEvent
+            ? [tokenSupplied.lastUpdate]
+            : [undefined]),
         );
 
       const currentDayTransactionBalanceByToken =
