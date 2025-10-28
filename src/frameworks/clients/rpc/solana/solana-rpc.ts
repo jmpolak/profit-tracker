@@ -1,5 +1,6 @@
 import { Injectable, Scope } from '@nestjs/common';
 import {
+  ConfirmedSignatureInfo,
   Connection,
   ParsedTransactionWithMeta,
   PublicKey,
@@ -9,6 +10,7 @@ import { SupportedSites } from 'src/core/entity/site';
 import { TransactionType, UserTransaction } from 'src/core/entity/transaction';
 import { ConfigService } from '@nestjs/config';
 import { TimeUtil } from 'src/shared/utils/time';
+import { ImmutableDate } from 'src/core/entity/immutable-date';
 @Injectable({ scope: Scope.TRANSIENT })
 export class SolanaRpc extends Connection {
   constructor(private readonly configService: ConfigService) {
@@ -35,13 +37,16 @@ export class SolanaRpc extends Connection {
       tokenPriceUsd: string;
       siteName: SupportedSites;
     },
+    date: ImmutableDate,
   ): Promise<UserTransaction[]> {
     const BATCH_SIZE = 5;
     const result: UserTransaction[] = [];
-    const sigInfos = await this.getSignaturesForAddress(
+    const sigInfosUnFiltered = await this.getSignaturesForAddress(
       new PublicKey(userAddress),
-      { limit: 50 }, // ToDo we could also use { before: signature} we would use the latest transaction of this user
+      { limit: 1000 },
     );
+
+    const sigInfos = this.filterTrxByDate(sigInfosUnFiltered, date);
 
     for (let i = 0; i < sigInfos.length; i += BATCH_SIZE) {
       const batch = sigInfos.slice(i, i + BATCH_SIZE);
@@ -154,5 +159,23 @@ export class SolanaRpc extends Connection {
     }
 
     return result;
+  }
+
+  private filterTrxByDate(
+    trx: ConfirmedSignatureInfo[],
+    targetDate: ImmutableDate,
+  ): ConfirmedSignatureInfo[] {
+    const start = new Date(targetDate.getTime());
+    const end = new Date(targetDate.getTime());
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    const startTimestamp = Math.floor(start.getTime() / 1000);
+    const endTimestamp = Math.floor(end.getTime() / 1000);
+    return trx.filter(
+      (tx) =>
+        tx.blockTime &&
+        tx.blockTime >= startTimestamp &&
+        tx.blockTime <= endTimestamp,
+    );
   }
 }

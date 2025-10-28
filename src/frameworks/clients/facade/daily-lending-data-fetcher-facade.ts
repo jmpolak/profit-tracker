@@ -4,6 +4,7 @@ import { ILendingRestClient } from 'src/frameworks/clients/lending-sites/lending
 import { StrategyFactory } from './factory/stategy-factory';
 import { DailyPositionsInformation } from 'src/core/entity/daily-position-information';
 import { IDailyInfoFetcherFacade } from 'src/core/abstract/daily-info-facade/daily-info-facade';
+import { ImmutableDate } from 'src/core/entity/immutable-date';
 
 @Injectable()
 export class DailyLendingDataFetcherFacade implements IDailyInfoFetcherFacade {
@@ -15,6 +16,7 @@ export class DailyLendingDataFetcherFacade implements IDailyInfoFetcherFacade {
     wallet: string,
     returnTransactions: boolean,
     poolAddresses: string[],
+    date: ImmutableDate,
   ): Promise<DailyPositionsInformation[]> {
     return await Promise.all(
       this.lendingRestClient
@@ -25,6 +27,7 @@ export class DailyLendingDataFetcherFacade implements IDailyInfoFetcherFacade {
             wallet,
             returnTransactions,
             poolAddresses,
+            date,
           ),
         ),
     );

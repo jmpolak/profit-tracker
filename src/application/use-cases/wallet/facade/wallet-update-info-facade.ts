@@ -41,6 +41,7 @@ export class WalletUpdateDailyInformationFacade {
         wallet.address,
         !onWalletCreation, // on wallet creation we dont need to get transactions
         poolAddresses,
+        date,
       )
     ).reduce(
       (acc, obj) => ({

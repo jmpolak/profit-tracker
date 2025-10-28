@@ -25,7 +25,7 @@ export class WalletUseCase {
     const date = new Date();
     const test = await this.walletFacade.getDailySupplyInformation(
       {
-        address: '0x56FD92cb3558D688F178AA3a9a15a1bE6631B4bf',
+        address: '8yi3LKeUXrNSHMq3y8dVdBvYfL3CHqmapyu5jadUHoLh',
         sitesSupplied: [],
       },
       false,

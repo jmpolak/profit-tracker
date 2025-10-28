@@ -6,6 +6,7 @@ import { AaveRestClient } from '../../lending-sites/aave-rest-client/aave-rest-c
 import { ILendingRestClient } from 'src/frameworks/clients/lending-sites/lending-rest-client';
 import { Injectable } from '@nestjs/common';
 import { WalletValidator } from 'src/application/validators/wallet-validator/wallet-validator';
+import { ImmutableDate } from 'src/core/entity/immutable-date';
 
 export interface GetDailyInformationStrategy {
   client: ILendingRestClient;
@@ -14,6 +15,7 @@ export interface GetDailyInformationStrategy {
     wallet: string,
     returnTransactions: boolean,
     poolAddresses?: string[],
+    date?: ImmutableDate,
   ): Promise<DailyPositionsInformation>;
 }
 
@@ -57,6 +59,7 @@ export class JupiterGetDailyInformationStrategy
     wallet: string,
     returnTransactions: boolean,
     poolAddresses: string[],
+    date: ImmutableDate,
   ): Promise<DailyPositionsInformation> {
     const supply = await this.client.getCurrentBalanceOfSuppliedTokens(
       wallet,
@@ -75,6 +78,7 @@ export class JupiterGetDailyInformationStrategy
             tokenPriceUsd: s.usdPricerPerToken,
             siteName: s.site,
           },
+          date,
         );
         userTransactions.push(...transactions);
       }
