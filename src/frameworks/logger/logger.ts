@@ -35,7 +35,7 @@ export class CustomLoggerService implements LoggerPort {
     context?: string,
     trace?: string,
   ): string {
-    const timestamp = new Date().toISOString();
+    const timestamp = this.toLocalISOString();
     let log = `[${timestamp}] [${level}]${context ? ` [${context}]` : ''}: ${message}`;
     if (trace) log += `\nTrace: ${trace}`;
     return log;
@@ -61,5 +61,28 @@ export class CustomLoggerService implements LoggerPort {
     console.error('\x1b[31m%s\x1b[0m', formatted);
     this.writeToFile(this.errorLogPath, formatted);
     this.writeToFile(this.combinedLogPath, formatted);
+  }
+
+  private toLocalISOString(date = new Date()) {
+    const tzo = -date.getTimezoneOffset();
+    const diff = tzo >= 0 ? '+' : '-';
+    const pad = (n) => `${Math.floor(Math.abs(n) / 10)}${Math.abs(n) % 10}`;
+    return (
+      date.getFullYear() +
+      '-' +
+      pad(date.getMonth() + 1) +
+      '-' +
+      pad(date.getDate()) +
+      'T' +
+      pad(date.getHours()) +
+      ':' +
+      pad(date.getMinutes()) +
+      ':' +
+      pad(date.getSeconds()) +
+      diff +
+      pad(tzo / 60) +
+      ':' +
+      pad(tzo % 60)
+    );
   }
 }
