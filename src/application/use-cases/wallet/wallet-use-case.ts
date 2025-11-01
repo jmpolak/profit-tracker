@@ -21,8 +21,9 @@ export class WalletUseCase {
 
   //@ToDo: remove it
   async test() {
-    // const date = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const date = new Date();
+    const date = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    date.setHours(23, 59, 59);
+    // const date = new Date();
     const test = await this.walletFacade.getDailySupplyInformation(
       {
         address: '8yi3LKeUXrNSHMq3y8dVdBvYfL3CHqmapyu5jadUHoLh',
