@@ -39,7 +39,7 @@ export abstract class ProfitUtils {
             .minus(new BigNumber(lastBalance))
             .minus(netDepositsWithdrawalsBN);
     const dailyProfitInPercentage =
-      lastBalance === undefined
+      lastBalance === undefined || new BigNumber(lastBalance).isZero()
         ? (() => {
             if (netDepositsWithdrawalsBN.isZero()) {
               return new BigNumber(0);
