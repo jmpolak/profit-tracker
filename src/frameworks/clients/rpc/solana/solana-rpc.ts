@@ -74,8 +74,7 @@ export class SolanaRpc extends Connection {
     return result;
   }
 
-  public parseRpcTransaction(
-    // to utils
+  private parseRpcTransaction(
     tx: ParsedTransactionWithMeta,
     underlyingAsset: string, // usdc, sol
     metadata: {
@@ -144,9 +143,6 @@ export class SolanaRpc extends Connection {
           if (info.mint === underlyingAsset) {
             // value as string
             result.value = info.tokenAmount.uiAmountString;
-
-            // calculate USD value if price known
-
             const amountNum = BigNumber(info.tokenAmount.uiAmountString);
             result.usdValue = amountNum
               .multipliedBy(BigNumber(metadata.tokenPriceUsd))

@@ -1,6 +1,8 @@
 ## Description
 
-Profit Tracker is a project to track your wallet on Aave. It will track your supplied positions. A cron job runs everyday to save your current balance. Based on this it can generate a file with your daily profits.
+Profit Tracker is a tool created to help you monitor and analyze your DeFi lending positions. It currently supports tracking supplied positions on both [**Aave**](https://aave.com/) and [**Jupiter Lend**](https://jupiter.exchange/lend).
+
+A daily cron job captures your wallet balance and transactions, allowing you to generate a detailed history of your **daily profits**.
 
 ## Built With
 
@@ -8,12 +10,11 @@ Profit Tracker is a project to track your wallet on Aave. It will track your sup
 - [NestJS](https://nestjs.com/) – Progressive Node.js framework for building scalable server-side applications
 - [Docker](https://www.docker.com/) – Containerization platform to build, ship, and run apps
 - [MongoDB](https://www.mongodb.com/) – NoSQL database for modern, scalable applications
-- [Aave SDK](https://docs.aave.com/) – SDK for interacting with the Aave protocol, enabling DeFi lending and borrowing functionalities
 
 ## Requirements
 
-- docker
-- docker compose v2
+- [Docker](https://www.docker.com/)
+- [Docker Compose v2](https://docs.docker.com/compose/)
 
 ## Environment Variables
 
@@ -26,7 +27,6 @@ SOLANA-RPC-URL-WITH-OR-WITHOUT-KEY=https://mainnet.helius-rpc.com/?api-key={api-
 or
 SOLANA-RPC-URL-WITH-OR-WITHOUT-KEY=https://api.mainnet-beta.solana.com
 ```
-
 
 Make sure to adjust the SolanaRpc class to the rpc endpoint rate limits.
 
