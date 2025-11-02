@@ -1,8 +1,8 @@
 ## Description
 
-Profit Tracker is a tool created to help you monitor and analyze your DeFi lending positions. It currently supports tracking supplied positions on both [**Aave**](https://aave.com/) and [**Jupiter Lend**](https://jupiter.exchange/lend).
+Profit Tracker is a tool created to help you monitor and analyze your DeFi lending positions. It currently supports tracking supplied positions on both [**Aave**](https://aave.com/) and [**Jupiter Lend**](https://jup.ag/lend/earn).
 
-A daily cron job captures your wallet balance and transactions, allowing you to generate a detailed history of your **daily profits**.
+A daily cron job captures your supplied token balances and transactions, allowing you to generate a detailed history of your **daily profits** for your wallet.
 
 ## Built With
 
