@@ -1,4 +1,5 @@
 import {
+  SuppliedSite,
   SuppliedToken,
   Wallet,
 } from 'src/frameworks/database/model/wallet.model';
@@ -9,6 +10,22 @@ export abstract class WalletTokenSupplied {
     return BigNumber(tokenSupplied.currentBalance).isGreaterThan(
       new BigNumber(0),
     );
+  }
+
+  static filterSuppliedSitesForBalanceGTZero(suppliedSites: SuppliedSite[]) {
+    return suppliedSites
+      .map((site) => ({
+        ...site,
+        suppliedChains: site.suppliedChains
+          .map((chain) => ({
+            ...chain,
+            tokens: chain.tokens.filter((token) =>
+              WalletTokenSupplied.hasSuppliedTokenBalance(token),
+            ),
+          }))
+          .filter((chain) => chain.tokens.length > 0), // remove chains with no tokens
+      }))
+      .filter((site) => site.suppliedChains.length > 0); // remove sites with no chains;
   }
 
   static getTokenSuppliedTokenFromWallet(

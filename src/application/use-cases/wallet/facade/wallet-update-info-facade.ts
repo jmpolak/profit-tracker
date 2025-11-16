@@ -25,9 +25,11 @@ export class WalletUpdateDailyInformationFacade {
     const result: DailyPositionInformationForOnePosition[] = [];
 
     const suppliedSitesWithRecentUpdatedTokens =
-      await this.databaseRepository.walletDataBaseRepository.getSitesRecentUpdatedTokensByWalletAddress(
-        wallet.address,
-        date,
+      WalletTokenSupplied.filterSuppliedSitesForBalanceGTZero(
+        await this.databaseRepository.walletDataBaseRepository.getSitesRecentUpdatedTokensByWalletAddress(
+          wallet.address,
+          date,
+        ),
       );
     // needed for solana rpc - filter for transactions with involved addresses
     // if wallet withdrawed everything we will not get transactions for it
@@ -58,7 +60,6 @@ export class WalletUpdateDailyInformationFacade {
         for (const token of chain.tokens ?? []) {
           // If token currency is missing from supply, add zero balances
           if (
-            WalletTokenSupplied.hasSuppliedTokenBalance(token) &&
             !supply.find(
               (csp) =>
                 csp.market.poolAddress.equalsIgnore(chain.poolAddress) &&
