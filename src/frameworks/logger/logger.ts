@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { LoggerPort } from 'src/core/abstract/logger-port/logger-port';
+import { DateUtil } from 'src/shared/utils/date';
 
 @Injectable()
 export class CustomLoggerService implements LoggerPort {
@@ -35,7 +36,7 @@ export class CustomLoggerService implements LoggerPort {
     context?: string,
     trace?: string,
   ): string {
-    const timestamp = this.toLocalISOString();
+    const timestamp = DateUtil.formatDateTime(new Date());
     let log = `[${timestamp}] [${level}]${context ? ` [${context}]` : ''}: ${message}`;
     if (trace) log += `\nTrace: ${trace}`;
     return log;
