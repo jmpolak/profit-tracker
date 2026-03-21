@@ -16,10 +16,12 @@ export class DailyUpdateWalletCronJob {
   async handleCron() {
     try {
       const date = new Date() as ImmutableDate;
-      this.logger.log(`Cron jobs started at ${DateUtil.formatDateTime(date)}`);
+      this.logger.log(
+        `Cron jobs started at ${DateUtil.formatDateTimeWithSec(date)}`,
+      );
       await this.walletUseCase.updateWallets(date);
       this.logger.log(
-        `Cron job ended at ${DateUtil.formatDateTime(new Date())}`,
+        `Cron job ended at ${DateUtil.formatDateTimeWithSec(new Date())}`,
       );
     } catch (err) {
       this.logger.error(err?.message ?? 'Cron job crashed');

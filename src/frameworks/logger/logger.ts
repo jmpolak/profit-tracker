@@ -36,7 +36,7 @@ export class CustomLoggerService implements LoggerPort {
     context?: string,
     trace?: string,
   ): string {
-    const timestamp = DateUtil.formatDateTime(new Date());
+    const timestamp = DateUtil.formatDateTimeWithSec(new Date());
     let log = `[${timestamp}] [${level}]${context ? ` [${context}]` : ''}: ${message}`;
     if (trace) log += `\nTrace: ${trace}`;
     return log;
