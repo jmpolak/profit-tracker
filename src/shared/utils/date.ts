@@ -28,7 +28,7 @@ export abstract class DateUtil {
     return `${dd}-${mm}-${yyyy}`;
   }
 
-  static formatDateTime(date: Date) {
+  static formatDateTime(date: Date | ImmutableDate) {
     const pad = (n: number) => n.toString().padStart(2, '0');
 
     const day = pad(date.getDate());
@@ -40,6 +40,22 @@ export abstract class DateUtil {
 
     return `${day}-${month}-${year} ${hours}:${minutes}` as string & {
       __format: 'DD-MM-YYYY hh:mm';
+    };
+  }
+
+  static formatDateTimeWithSec(date: Date | ImmutableDate) {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+
+    const day = pad(date.getDate());
+    const month = pad(date.getMonth() + 1); // Months are 0-indexed
+    const year = date.getFullYear();
+
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}` as string & {
+      __format: 'DD-MM-YYYY hh:mm:ss';
     };
   }
 }

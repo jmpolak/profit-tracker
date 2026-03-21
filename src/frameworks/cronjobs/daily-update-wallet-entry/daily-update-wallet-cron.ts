@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { WalletUseCase } from 'src/application/use-cases/wallet/wallet-use-case';
 import { LoggerPort } from 'src/core/abstract/logger-port/logger-port';
 import { ImmutableDate } from 'src/core/entity/immutable-date';
+import { DateUtil } from 'src/shared/utils/date';
 
 @Injectable()
 export class DailyUpdateWalletCronJob {
@@ -15,9 +16,13 @@ export class DailyUpdateWalletCronJob {
   async handleCron() {
     try {
       const date = new Date() as ImmutableDate;
-      this.logger.log(`Cron jobs started at ${date.toLocaleTimeString()}`);
+      this.logger.log(
+        `Cron jobs started at ${DateUtil.formatDateTimeWithSec(date)}`,
+      );
       await this.walletUseCase.updateWallets(date);
-      this.logger.log(`Cron job ended at ${new Date().toLocaleTimeString()}`);
+      this.logger.log(
+        `Cron job ended at ${DateUtil.formatDateTimeWithSec(new Date())}`,
+      );
     } catch (err) {
       this.logger.error(err?.message ?? 'Cron job crashed');
     }
